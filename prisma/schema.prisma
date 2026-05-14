@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  COORDINATOR
+  MANAGER
+}
+
+enum ClientTag {
+  MARMITARIA
+  DELIVERY
+  GENERICA
+}
+
+enum ReportType {
+  WEEKLY
+  MONTHLY
+  CUSTOM
+}
+
+enum AccountObjective {
+  CARDAPIO
+  LEADS
+  WHATSAPP
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model User {
+  id        String      @id @default(cuid())
+  name      String
+  email     String      @unique
+  password  String
+  role      Role        @default(MANAGER)
+  tags      ClientTag[] @default([])
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  managedClients   ClientManager[]
+  reports          Report[]
+  preference       UserPreference?
+  auditLogs        AuditLog[]
+  pixWeeklyRecords PixWeeklyRecord[]
+  assignedTasks    Task[]            @relation("TaskAssignee")
+  createdTasks     Task[]            @relation("TaskCreator")
+  taskComments     TaskComment[]
+
+  @@map("users")
+}
+
+model Client {
+  id           String    @id @default(cuid())
+  name         String
+  tag          ClientTag @default(GENERICA)
+  description  String?   @db.Text
+  notes        String?   @db.Text
+  contactName  String?
+  contactPhone String?
+  contactEmail String?
+  businessInfo Json?
+  customFields Json?
+  goals        Json?
+  usesPix      Boolean   @default(false)
+  pixValue     Float?
+  active       Boolean   @default(true)
+  archivedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  metaAccounts     MetaAccount[]
+  managers         ClientManager[]
+  reports          Report[]
+  monthlyGoals     MonthlyGoal[]
+  pixWeeklyRecords PixWeeklyRecord[]
+  tasks            Task[]
+  attachments      ClientAttachment[]
+  customSections   ClientSection[]
+
+  @@map("clients")
+}
+
+model ClientSection {
+  id        String   @id @default(cuid())
+  clientId  String
+  title     String
+  content   String?  @db.Text
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("client_sections")
+}
+
+model ClientAttachment {
+  id        String   @id @default(cuid())
+  clientId  String
+  name      String
+  url       String
+  type      String
+  createdAt DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("client_attachments")
+}
+
+model MetaAccount {
+  id             String           @id @default(cuid())
+  clientId       String
+  accountId      String
+  accountName    String?
+  tokenEncrypted String
+  campaignFilter String[]         @default([])
+  objective      AccountObjective @default(CARDAPIO)
+  billingUrl     String?
+  active         Boolean          @default(true)
+
+  client  Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  reports Report[]
+
+  @@map("meta_accounts")
+}
+
+model ClientManager {
+  clientId String
+  userId   String
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([clientId, userId])
+  @@map("client_managers")
+}
+
+model Report {
+  id            String     @id @default(cuid())
+  clientId      String
+  metaAccountId String?
+  type          ReportType
+  periodStart   DateTime
+  periodEnd     DateTime
+  content       String     @db.Text
+  rawData       Json?
+  generatedById String
+  createdAt     DateTime   @default(now())
+
+  client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  metaAccount MetaAccount? @relation(fields: [metaAccountId], references: [id], onDelete: SetNull)
+  generatedBy User         @relation(fields: [generatedById], references: [id])
+
+  @@map("reports")
+}
+
+model MonthlyGoal {
+  id        String   @id @default(cuid())
+  clientId  String
+  year      Int
+  month     Int
+  weeks     Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, year, month])
+  @@map("monthly_goals")
+}
+
+model PixWeeklyRecord {
+  id       String    @id @default(cuid())
+  clientId String
+  weekOf   DateTime
+  sentAt   DateTime?
+  sentById String?
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  sentBy User?  @relation(fields: [sentById], references: [id])
+
+  @@unique([clientId, weekOf])
+  @@map("pix_weekly_records")
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?      @db.Text
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?
+  clientId    String?
+  assigneeId  String?
+  createdById String
+  order       Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  client    Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  assignee  User?         @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdBy User          @relation("TaskCreator", fields: [createdById], references: [id])
+  comments  TaskComment[]
+  labels    TaskLabel[]
+
+  @@map("tasks")
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("task_comments")
+}
+
+model TaskLabel {
+  id     String @id @default(cuid())
+  taskId String
+  name   String
+  color  String @default("#6366f1")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_labels")
+}
+
+model UserPreference {
+  userId    String   @id
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  userEmail  String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
