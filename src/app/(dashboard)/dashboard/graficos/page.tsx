@@ -58,10 +58,12 @@ export default async function GraficosPage() {
   });
 
   return (
-    <GraficosBoard
-      reports={reportsWithMetrics}
-      clients={clients as { id: string; name: string; tag: ClientTag }[]}
-      currentUser={{ id: userId, role: userRole }}
-    />
+    <div className="flex flex-col" style={{ minHeight: "100vh" }}>
+      <GraficosBoard
+        reports={reportsWithMetrics}
+        clients={clients as { id: string; name: string; tag: ClientTag }[]}
+        currentUser={{ id: userId, role: userRole }}
+      />
+    </div>
   );
 }

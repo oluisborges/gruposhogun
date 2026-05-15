@@ -80,14 +80,7 @@ export default async function OverviewPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Overview de Clientes</h1>
-        <p className="text-neutral-400 text-sm mt-1">
-          Metricas consolidadas de todos os clientes ativos
-        </p>
-      </div>
-
+    <div className="flex flex-col" style={{ minHeight: "100vh" }}>
       <OverviewTable
         rows={rows}
         currentUser={{

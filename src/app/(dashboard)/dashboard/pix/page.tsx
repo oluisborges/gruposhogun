@@ -71,11 +71,13 @@ export default async function PixPage() {
   });
 
   return (
-    <PixBoard
-      items={items}
-      currentUser={{ id: userId, role: userRole }}
-      weekStart={formatBRTDate(weekOf)}
-      weekEnd={formatBRTDate(weekEnd)}
-    />
+    <div className="flex flex-col" style={{ minHeight: "100vh" }}>
+      <PixBoard
+        items={items}
+        currentUser={{ id: userId, role: userRole }}
+        weekStart={formatBRTDate(weekOf)}
+        weekEnd={formatBRTDate(weekEnd)}
+      />
+    </div>
   );
 }

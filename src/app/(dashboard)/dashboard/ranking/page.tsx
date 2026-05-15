@@ -127,10 +127,12 @@ export default async function RankingPage() {
   entries.sort((a, b) => b.totalPoints - a.totalPoints);
 
   return (
-    <RankingBoard
-      initialData={{ managers: entries, month, year }}
-      initialMonth={month}
-      initialYear={year}
-    />
+    <div className="flex flex-col" style={{ minHeight: "100vh" }}>
+      <RankingBoard
+        initialData={{ managers: entries, month, year }}
+        initialMonth={month}
+        initialYear={year}
+      />
+    </div>
   );
 }

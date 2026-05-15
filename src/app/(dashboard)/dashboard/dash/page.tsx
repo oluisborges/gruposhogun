@@ -53,53 +53,106 @@ export default async function DashPage({
     }
 
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-red-500/10 rounded-md">
-            <Database className="w-5 h-5 text-red-400" />
+      <div className="flex flex-col" style={{ minHeight: "100vh", background: "#0d1410" }}>
+        {/* Topbar */}
+        <div
+          className="flex-shrink-0 flex items-center gap-5 px-7 sticky top-0 z-10"
+          style={{
+            height: 64,
+            borderBottom: "1px solid #1f2a23",
+            background: "rgba(13,20,16,0.85)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          <div className="flex items-center gap-2 text-sm">
+            <span style={{ color: "#6e7a70" }}>Ferramentas</span>
+            <span style={{ color: "#4a5450" }}>/</span>
+            <span style={{ color: "#e6efe8", fontWeight: 600 }}>HUB de Dados</span>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">HUB de Dados</h1>
-            <p className="text-sm text-neutral-400">Selecione um cliente para visualizar os dados</p>
+          <div className="ml-auto flex items-center gap-2">
+            <Database style={{ width: 16, height: 16, color: "#7DC128" }} />
           </div>
         </div>
 
-        {clients.length === 0 ? (
-          <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-8 text-center">
-            <p className="text-neutral-500 text-sm">Nenhum cliente disponível</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {clients.map((client) => (
-              <Link
-                key={client.id}
-                href={`/dashboard/dash?clientId=${client.id}`}
-                className="bg-neutral-900 border border-neutral-800 rounded-lg p-5 hover:border-neutral-700 transition-colors group"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="w-9 h-9 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-bold text-red-400">
-                      {client.name.charAt(0).toUpperCase()}
+        {/* Content */}
+        <div style={{ padding: "28px 28px", flex: 1 }}>
+          <p style={{ fontSize: 13, color: "#6e7a70", marginBottom: 24 }}>
+            Selecione um cliente para visualizar os dados
+          </p>
+
+          {clients.length === 0 ? (
+            <div
+              style={{
+                background: "#141f18",
+                border: "1px solid #1f2a23",
+                borderRadius: 10,
+                padding: 32,
+                textAlign: "center",
+              }}
+            >
+              <p style={{ fontSize: 14, color: "#4a5450" }}>Nenhum cliente disponível</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {clients.map((client) => (
+                <Link
+                  key={client.id}
+                  href={`/dashboard/dash?clientId=${client.id}`}
+                  style={{
+                    background: "#141f18",
+                    border: "1px solid #1f2a23",
+                    borderRadius: 10,
+                    padding: 20,
+                    textDecoration: "none",
+                    display: "block",
+                    transition: "border-color 0.15s",
+                  }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "#28342a")}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "#1f2a23")}
+                >
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 8,
+                        background: "linear-gradient(135deg, #244a32, #15301f)",
+                        border: "1px solid #284d36",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span style={{ color: "#9be03a", fontWeight: 700, fontSize: 14 }}>
+                        {client.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: "#6e7a70",
+                        fontFamily: "var(--font-mono)",
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      {client.metaAccounts.length} conta{client.metaAccounts.length !== 1 ? "s" : ""}
                     </span>
                   </div>
-                  <span className="text-xs text-neutral-500">
-                    {client.metaAccounts.length} conta{client.metaAccounts.length !== 1 ? "s" : ""}
-                  </span>
-                </div>
-                <h3 className="text-sm font-semibold text-white group-hover:text-neutral-100 truncate">
-                  {client.name}
-                </h3>
-                {client.metaAccounts.length > 0 && (
-                  <p className="text-xs text-neutral-500 mt-1 truncate">
-                    {client.metaAccounts[0].accountName ?? client.metaAccounts[0].accountId}
-                    {client.metaAccounts.length > 1 &&
-                      ` +${client.metaAccounts.length - 1}`}
-                  </p>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
+                  <h3 style={{ fontSize: 14, fontWeight: 600, color: "#e6efe8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {client.name}
+                  </h3>
+                  {client.metaAccounts.length > 0 && (
+                    <p style={{ fontSize: 11, color: "#6e7a70", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {client.metaAccounts[0].accountName ?? client.metaAccounts[0].accountId}
+                      {client.metaAccounts.length > 1 && ` +${client.metaAccounts.length - 1}`}
+                    </p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -154,16 +207,18 @@ export default async function DashPage({
   };
 
   return (
-    <DataHub
-      client={clientData}
-      currentUser={currentUser}
-      recentReports={recentReports.map((r) => ({
-        id: r.id,
-        periodStart: r.periodStart.toISOString(),
-        periodEnd: r.periodEnd.toISOString(),
-        rawData: r.rawData,
-        createdAt: r.createdAt.toISOString(),
-      }))}
-    />
+    <div className="flex flex-col" style={{ minHeight: "100vh" }}>
+      <DataHub
+        client={clientData}
+        currentUser={currentUser}
+        recentReports={recentReports.map((r) => ({
+          id: r.id,
+          periodStart: r.periodStart.toISOString(),
+          periodEnd: r.periodEnd.toISOString(),
+          rawData: r.rawData,
+          createdAt: r.createdAt.toISOString(),
+        }))}
+      />
+    </div>
   );
 }

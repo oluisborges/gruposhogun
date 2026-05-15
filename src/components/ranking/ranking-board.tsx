@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { formatBRL, formatNumber, formatPercent } from "@/lib/formatting";
 
 const MONTH_NAMES = [
@@ -54,16 +53,60 @@ const MEDAL_EMOJI: Record<Medal, string> = { gold: "🥇", silver: "🥈", bronz
 const PODIUM_CROWNS = ["🥇", "🥈", "🥉"];
 
 function PodiumCard({ entry, rank }: { entry: RankingEntry; rank: number }) {
-  const sizes = ["h-24", "h-16", "h-12"];
-  const crowns = PODIUM_CROWNS;
+  const isFirst = rank === 0;
+  const heights = [120, 88, 64];
 
   return (
-    <div className={`flex flex-col items-center gap-2 ${rank === 0 ? "order-2" : rank === 1 ? "order-1" : "order-3"}`}>
-      <span className="text-2xl">{crowns[rank]}</span>
-      <div className={`w-20 bg-neutral-800 border border-neutral-700 rounded-t-lg flex items-end justify-center ${sizes[rank]}`}>
-        <div className="pb-2 text-center">
-          <p className="text-xs font-bold text-white truncate max-w-[70px]">{entry.userName}</p>
-          <p className="text-xs text-neutral-400">{entry.totalPoints}pts</p>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 8,
+        order: rank === 0 ? 2 : rank === 1 ? 1 : 3,
+      }}
+    >
+      <span style={{ fontSize: 28 }}>{PODIUM_CROWNS[rank]}</span>
+      <div
+        style={{
+          width: 80,
+          height: heights[rank],
+          background: "#141f18",
+          border: isFirst ? "1px solid #7DC128" : "1px solid #1f2a23",
+          borderRadius: "8px 8px 0 0",
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "center",
+          paddingBottom: 10,
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#e6efe8",
+              maxWidth: 68,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {entry.userName}
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: isFirst ? 20 : 16,
+              fontWeight: 700,
+              color: isFirst ? "#7DC128" : "#a8b3aa",
+              textTransform: "uppercase",
+              letterSpacing: "0.02em",
+            }}
+          >
+            {entry.totalPoints}
+            <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "#6e7a70" }}>pts</span>
+          </p>
         </div>
       </div>
     </div>
@@ -71,7 +114,7 @@ function PodiumCard({ entry, rank }: { entry: RankingEntry; rank: number }) {
 }
 
 function MedalCell({ medal }: { medal?: Medal }) {
-  if (!medal) return <span className="text-neutral-700">—</span>;
+  if (!medal) return <span style={{ color: "#4a5450" }}>—</span>;
   return <span>{MEDAL_EMOJI[medal]}</span>;
 }
 
@@ -104,102 +147,260 @@ export function RankingBoard({ initialData, initialMonth, initialYear }: Ranking
   const entries = data.managers;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Ranking de Gestores</h1>
-          <p className="text-neutral-400 text-sm mt-1">
-            Performance dos gestores por métricas agregadas
-          </p>
+    <div className="flex flex-col" style={{ minHeight: "100vh", background: "#0d1410" }}>
+      {/* Topbar */}
+      <div
+        className="flex-shrink-0 flex items-center gap-5 px-7 sticky top-0 z-10"
+        style={{
+          height: 64,
+          borderBottom: "1px solid #1f2a23",
+          background: "rgba(13,20,16,0.85)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <div className="flex items-center gap-2 text-sm">
+          <span style={{ color: "#6e7a70" }}>Operação</span>
+          <span style={{ color: "#4a5450" }}>/</span>
+          <span style={{ color: "#e6efe8", fontWeight: 600 }}>Ranking de Gestores</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="border-neutral-700 text-neutral-400 hover:text-white">
+
+        {/* Month navigator */}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              background: "#0f1813",
+              border: "1px solid #1f2a23",
+              borderRadius: 8,
+              color: "#a8b3aa",
+              padding: "6px 10px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
             <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <span className="text-sm font-medium text-white min-w-[140px] text-center">
+          </button>
+          <span
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 15,
+              fontWeight: 700,
+              color: "#e6efe8",
+              minWidth: 150,
+              textAlign: "center",
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
+            }}
+          >
             {MONTH_NAMES[month - 1]} {year}
           </span>
-          <Button variant="outline" size="sm" onClick={() => navigate(1)} className="border-neutral-700 text-neutral-400 hover:text-white">
+          <button
+            onClick={() => navigate(1)}
+            style={{
+              background: "#0f1813",
+              border: "1px solid #1f2a23",
+              borderRadius: 8,
+              color: "#a8b3aa",
+              padding: "6px 10px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
             <ChevronRight className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
       </div>
 
-      {loading ? (
-        <div className="animate-pulse space-y-4">
-          <div className="h-32 bg-neutral-900 border border-neutral-800 rounded-lg" />
-          <div className="h-48 bg-neutral-900 border border-neutral-800 rounded-lg" />
-        </div>
-      ) : (
-        <>
-          {/* Podium */}
-          {top3.length > 0 && (
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-              <h2 className="text-sm font-semibold text-neutral-400 mb-4 text-center">Top 3</h2>
-              <div className="flex justify-center items-end gap-4">
-                {top3.map((entry, i) => (
-                  <PodiumCard key={entry.userId} entry={entry} rank={i} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Full table */}
-          {entries.length === 0 ? (
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-8 text-center text-neutral-500">
-              Nenhum dado de ranking para {MONTH_NAMES[month - 1]} {year}
-            </div>
-          ) : (
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-neutral-800">
-                    <th className="text-left text-xs font-medium text-neutral-500 px-4 py-3">#</th>
-                    <th className="text-left text-xs font-medium text-neutral-500 px-4 py-3">Gestor</th>
-                    <th className="text-right text-xs font-medium text-neutral-500 px-4 py-3">ROAS</th>
-                    <th className="text-right text-xs font-medium text-neutral-500 px-4 py-3">CPA</th>
-                    <th className="text-right text-xs font-medium text-neutral-500 px-4 py-3">Receita</th>
-                    <th className="text-right text-xs font-medium text-neutral-500 px-4 py-3">Ticket Médio</th>
-                    <th className="text-right text-xs font-medium text-neutral-500 px-4 py-3">Conv. Rate</th>
-                    <th className="text-right text-xs font-medium text-neutral-500 px-4 py-3">CPM</th>
-                    <th className="text-right text-xs font-medium text-neutral-500 px-4 py-3">Pontos</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((entry, i) => (
-                    <tr key={entry.userId} className="border-b border-neutral-800 last:border-0 hover:bg-neutral-800/30 transition-colors">
-                      <td className="px-4 py-3 text-sm text-neutral-500">{i + 1}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-white">{entry.userName}</td>
-                      <td className="px-4 py-3 text-sm text-right text-neutral-300">
-                        <MedalCell medal={entry.medals.roas} /> {formatNumber(entry.metrics.roas)}x
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right text-neutral-300">
-                        <MedalCell medal={entry.medals.cpa} /> {entry.metrics.cpa > 0 ? formatBRL(entry.metrics.cpa) : "—"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right text-neutral-300">
-                        <MedalCell medal={entry.medals.revenue} /> {formatBRL(entry.metrics.revenue)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right text-neutral-300">
-                        <MedalCell medal={entry.medals.avgTicket} /> {entry.metrics.avgTicket > 0 ? formatBRL(entry.metrics.avgTicket) : "—"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right text-neutral-300">
-                        <MedalCell medal={entry.medals.conversionRate} /> {formatPercent(entry.metrics.conversionRate)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right text-neutral-300">
-                        <MedalCell medal={entry.medals.cpm} /> {formatBRL(entry.metrics.cpm)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right font-bold text-white">
-                        {entry.totalPoints}
-                      </td>
-                    </tr>
+      {/* Content */}
+      <div style={{ padding: "28px 28px", flex: 1 }}>
+        {loading ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {[192, 240].map((h, i) => (
+              <div
+                key={i}
+                style={{
+                  background: "#141f18",
+                  border: "1px solid #1f2a23",
+                  borderRadius: 10,
+                  height: h,
+                  animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Podium */}
+            {top3.length > 0 && (
+              <div
+                style={{
+                  background: "#141f18",
+                  border: "1px solid #1f2a23",
+                  borderRadius: 10,
+                  padding: 24,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 11,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "#6e7a70",
+                    fontWeight: 700,
+                    textAlign: "center",
+                    marginBottom: 20,
+                  }}
+                >
+                  Top 3
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "flex-end",
+                    gap: 16,
+                  }}
+                >
+                  {top3.map((entry, i) => (
+                    <PodiumCard key={entry.userId} entry={entry} rank={i} />
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
-      )}
+                </div>
+              </div>
+            )}
+
+            {/* Full table */}
+            {entries.length === 0 ? (
+              <div
+                style={{
+                  background: "#141f18",
+                  border: "1px solid #1f2a23",
+                  borderRadius: 10,
+                  padding: 32,
+                  textAlign: "center",
+                  color: "#4a5450",
+                  fontSize: 14,
+                }}
+              >
+                Nenhum dado de ranking para {MONTH_NAMES[month - 1]} {year}
+              </div>
+            ) : (
+              <div
+                style={{
+                  background: "#141f18",
+                  border: "1px solid #1f2a23",
+                  borderRadius: 10,
+                  overflow: "auto",
+                }}
+              >
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr>
+                      {["#", "Gestor", "ROAS", "CPA", "Receita", "Ticket Médio", "Conv. Rate", "CPM", "Pontos"].map((h) => (
+                        <th
+                          key={h}
+                          style={{
+                            textAlign: h === "#" || h === "Gestor" ? "left" : "right",
+                            fontSize: 11,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.1em",
+                            color: "#6e7a70",
+                            fontWeight: 700,
+                            padding: "10px 16px",
+                            borderBottom: "1px solid #1f2a23",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entries.map((entry, i) => (
+                      <tr
+                        key={entry.userId}
+                        style={{
+                          borderBottom: i === entries.length - 1 ? "none" : "1px dashed #1f2a23",
+                          transition: "background 0.1s",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#182219")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <td
+                          style={{
+                            padding: "12px 16px",
+                            fontSize: 13,
+                            color: "#6e7a70",
+                            fontFamily: "var(--font-mono)",
+                          }}
+                        >
+                          {i + 1}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 16px",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: "#e6efe8",
+                          }}
+                        >
+                          {entry.userName}
+                        </td>
+                        <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                          <span style={{ fontSize: 13, color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
+                            <MedalCell medal={entry.medals.roas} />{" "}{formatNumber(entry.metrics.roas)}x
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                          <span style={{ fontSize: 13, color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
+                            <MedalCell medal={entry.medals.cpa} />{" "}{entry.metrics.cpa > 0 ? formatBRL(entry.metrics.cpa) : "—"}
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                          <span style={{ fontSize: 13, color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
+                            <MedalCell medal={entry.medals.revenue} />{" "}{formatBRL(entry.metrics.revenue)}
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                          <span style={{ fontSize: 13, color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
+                            <MedalCell medal={entry.medals.avgTicket} />{" "}{entry.metrics.avgTicket > 0 ? formatBRL(entry.metrics.avgTicket) : "—"}
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                          <span style={{ fontSize: 13, color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
+                            <MedalCell medal={entry.medals.conversionRate} />{" "}{formatPercent(entry.metrics.conversionRate)}
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                          <span style={{ fontSize: 13, color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
+                            <MedalCell medal={entry.medals.cpm} />{" "}{formatBRL(entry.metrics.cpm)}
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                          <span
+                            style={{
+                              fontFamily: "var(--font-display)",
+                              fontSize: 16,
+                              fontWeight: 700,
+                              color: "#7DC128",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.02em",
+                            }}
+                          >
+                            {entry.totalPoints}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

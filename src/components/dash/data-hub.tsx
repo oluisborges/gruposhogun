@@ -252,37 +252,54 @@ export function DataHub({ client, currentUser: _currentUser, recentReports }: Da
 
   const selectedAccount = client.metaAccounts.find((a) => a.id === selectedAccountId);
 
+  const inputStyle = {
+    background: "#0f1813",
+    border: "1px solid #1f2a23",
+    borderRadius: 8,
+    color: "#e6efe8",
+    fontSize: 13,
+    padding: "7px 12px",
+    outline: "none",
+    cursor: "pointer",
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-red-500/10 rounded-md">
-            <Database className="w-5 h-5 text-red-400" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/dashboard/dash"
-                className="text-neutral-500 hover:text-white transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Link>
-              <h1 className="text-xl font-bold text-white">{client.name}</h1>
-            </div>
-            <p className="text-sm text-neutral-400">HUB de Dados</p>
+    <div className="flex flex-col" style={{ minHeight: "100vh", background: "#0d1410" }}>
+      {/* Topbar */}
+      <div
+        className="flex-shrink-0 flex items-center gap-5 px-7 sticky top-0 z-10"
+        style={{
+          height: 64,
+          borderBottom: "1px solid #1f2a23",
+          background: "rgba(13,20,16,0.85)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Link
+            href="/dashboard/dash"
+            style={{ color: "#6e7a70", display: "flex", alignItems: "center" }}
+          >
+            <ArrowLeft style={{ width: 16, height: 16 }} />
+          </Link>
+          <div className="flex items-center gap-2 text-sm">
+            <span style={{ color: "#6e7a70" }}>Ferramentas</span>
+            <span style={{ color: "#4a5450" }}>/</span>
+            <span style={{ color: "#6e7a70" }}>HUB de Dados</span>
+            <span style={{ color: "#4a5450" }}>·</span>
+            <span style={{ color: "#e6efe8", fontWeight: 600 }}>{client.name}</span>
           </div>
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="ml-auto flex items-center gap-3">
           {/* Account selector */}
           {client.metaAccounts.length > 1 && (
-            <div className="relative">
+            <div style={{ position: "relative" }}>
               <select
                 value={selectedAccountId}
                 onChange={(e) => setSelectedAccountId(e.target.value)}
-                className="appearance-none bg-neutral-800 border border-neutral-700 text-white text-sm rounded-md pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500 cursor-pointer"
+                style={{ ...inputStyle, appearance: "none", paddingRight: 32 }}
               >
                 {client.metaAccounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -290,323 +307,385 @@ export function DataHub({ client, currentUser: _currentUser, recentReports }: Da
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
+              <ChevronDown
+                style={{
+                  position: "absolute",
+                  right: 8,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 14,
+                  height: 14,
+                  color: "#6e7a70",
+                  pointerEvents: "none",
+                }}
+              />
             </div>
           )}
 
           {/* Period selector */}
-          <div className="flex items-center gap-1 bg-neutral-800 border border-neutral-700 rounded-md p-1">
-            {(["week", "month", "custom"] as PeriodType[]).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                  period === p
-                    ? "bg-neutral-700 text-white"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-              >
-                {p === "week" ? "Semana" : p === "month" ? "Mês" : "Custom"}
-              </button>
-            ))}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              background: "#0f1813",
+              border: "1px solid #1f2a23",
+              borderRadius: 8,
+              padding: 3,
+            }}
+          >
+            {(["week", "month", "custom"] as PeriodType[]).map((p) => {
+              const active = period === p;
+              return (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  style={{
+                    padding: "5px 12px",
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    border: "none",
+                    background: active ? "#1A3D2B" : "transparent",
+                    color: active ? "#e6efe8" : "#6e7a70",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {p === "week" ? "Semana" : p === "month" ? "Mês" : "Custom"}
+                </button>
+              );
+            })}
           </div>
 
           {/* Custom date range */}
           {period === "custom" && (
-            <div className="flex items-center gap-2">
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <input
                 type="date"
                 value={customFrom}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="bg-neutral-800 border border-neutral-700 text-white text-xs rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500"
+                style={{ ...inputStyle, fontSize: 12 }}
               />
-              <span className="text-neutral-500 text-xs">–</span>
+              <span style={{ color: "#4a5450", fontSize: 12 }}>–</span>
               <input
                 type="date"
                 value={customTo}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="bg-neutral-800 border border-neutral-700 text-white text-xs rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500"
+                style={{ ...inputStyle, fontSize: 12 }}
               />
             </div>
           )}
         </div>
       </div>
 
-      {/* Account info */}
-      {selectedAccount && (
-        <p className="text-xs text-neutral-500">
-          Conta: {selectedAccount.accountName ?? selectedAccount.accountId} · Período:{" "}
-          {dateRange.since} → {dateRange.until}
-        </p>
-      )}
+      {/* Content */}
+      <div style={{ padding: "24px 28px", flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Account info */}
+        {selectedAccount && (
+          <p style={{ fontSize: 11, color: "#6e7a70", fontFamily: "var(--font-mono)" }}>
+            Conta: {selectedAccount.accountName ?? selectedAccount.accountId} · Período:{" "}
+            {dateRange.since} → {dateRange.until}
+          </p>
+        )}
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="inicio">
-            <Database className="w-3.5 h-3.5 mr-1.5" />
-            Início
-          </TabsTrigger>
-          <TabsTrigger value="campanhas">
-            <TrendingUp className="w-3.5 h-3.5 mr-1.5" />
-            Campanhas
-          </TabsTrigger>
-          <TabsTrigger value="top-anuncios">
-            <Star className="w-3.5 h-3.5 mr-1.5" />
-            Top Anúncios
-          </TabsTrigger>
-          <TabsTrigger value="graficos">
-            <BarChart2 className="w-3.5 h-3.5 mr-1.5" />
-            Gráficos
-          </TabsTrigger>
-          <TabsTrigger value="metas">
-            <Target className="w-3.5 h-3.5 mr-1.5" />
-            Metas
-          </TabsTrigger>
-        </TabsList>
+        {/* Tabs — styled with design system */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList
+            style={{
+              background: "#0f1813",
+              border: "1px solid #1f2a23",
+              borderRadius: 8,
+              padding: 3,
+              gap: 2,
+            }}
+          >
+            <TabsTrigger value="inicio">
+              <Database className="w-3.5 h-3.5 mr-1.5" />
+              Início
+            </TabsTrigger>
+            <TabsTrigger value="campanhas">
+              <TrendingUp className="w-3.5 h-3.5 mr-1.5" />
+              Campanhas
+            </TabsTrigger>
+            <TabsTrigger value="top-anuncios">
+              <Star className="w-3.5 h-3.5 mr-1.5" />
+              Top Anúncios
+            </TabsTrigger>
+            <TabsTrigger value="graficos">
+              <BarChart2 className="w-3.5 h-3.5 mr-1.5" />
+              Gráficos
+            </TabsTrigger>
+            <TabsTrigger value="metas">
+              <Target className="w-3.5 h-3.5 mr-1.5" />
+              Metas
+            </TabsTrigger>
+          </TabsList>
 
-        {/* TAB: INÍCIO */}
-        <TabsContent value="inicio">
-          <div className="space-y-4 pt-2">
-            <h2 className="text-sm font-semibold text-neutral-300">
-              Resumo —{" "}
-              {latestReport
-                ? `Último relatório (${formatBRTDate(latestReport.periodStart)})`
-                : "Sem relatórios disponíveis"}
-            </h2>
-            {latestReport ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <SummaryCard
-                  label="Investimento"
-                  value={formatBRL(latestMetrics.spend ?? 0)}
-                  color="blue"
-                />
-                <SummaryCard
-                  label="Faturamento"
-                  value={formatBRL(latestMetrics.revenue ?? 0)}
-                  color="green"
-                />
-                <SummaryCard
-                  label="ROAS"
-                  value={`${formatNumber(latestMetrics.roas ?? 0)}x`}
-                  color="yellow"
-                />
-                <SummaryCard
-                  label="Compras"
-                  value={formatNumber(latestMetrics.purchases ?? 0, 0)}
-                  color="purple"
-                />
-              </div>
-            ) : (
-              <EmptyState message="Nenhum relatório encontrado para este cliente" />
-            )}
-          </div>
-        </TabsContent>
+          {/* TAB: INÍCIO */}
+          <TabsContent value="inicio">
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingTop: 8 }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "#6e7a70",
+                  fontWeight: 700,
+                }}
+              >
+                Resumo —{" "}
+                {latestReport
+                  ? `Último relatório (${formatBRTDate(latestReport.periodStart)})`
+                  : "Sem relatórios disponíveis"}
+              </p>
+              {latestReport ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <SummaryCard label="Investimento" value={formatBRL(latestMetrics.spend ?? 0)} accent="#5b8ad4" />
+                  <SummaryCard label="Faturamento" value={formatBRL(latestMetrics.revenue ?? 0)} accent="#7DC128" />
+                  <SummaryCard label="ROAS" value={`${formatNumber(latestMetrics.roas ?? 0)}x`} accent="#e8a73a" />
+                  <SummaryCard label="Compras" value={formatNumber(latestMetrics.purchases ?? 0, 0)} accent="#a855f7" />
+                </div>
+              ) : (
+                <EmptyState message="Nenhum relatório encontrado para este cliente" />
+              )}
+            </div>
+          </TabsContent>
 
-        {/* TAB: CAMPANHAS */}
-        <TabsContent value="campanhas">
-          <div className="space-y-4 pt-2">
-            {campaignsLoading ? (
-              <LoadingState />
-            ) : campaignsError ? (
-              <ErrorState message={campaignsError} onRetry={fetchCampaigns} />
-            ) : campaigns.length === 0 && campaignsFetched ? (
-              <EmptyState message="Nenhuma campanha encontrada no período" />
-            ) : (
-              <div className="space-y-2">
-                {campaigns.map((campaign) => (
+          {/* TAB: CAMPANHAS */}
+          <TabsContent value="campanhas">
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 8 }}>
+              {campaignsLoading ? (
+                <LoadingState />
+              ) : campaignsError ? (
+                <ErrorState message={campaignsError} onRetry={fetchCampaigns} />
+              ) : campaigns.length === 0 && campaignsFetched ? (
+                <EmptyState message="Nenhuma campanha encontrada no período" />
+              ) : (
+                campaigns.map((campaign) => (
                   <div
                     key={campaign.id}
-                    className="bg-neutral-900 border border-neutral-800 rounded-lg p-4"
+                    style={{
+                      background: "#141f18",
+                      border: "1px solid #1f2a23",
+                      borderRadius: 10,
+                      padding: 16,
+                    }}
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                           <span
-                            className={`inline-flex items-center text-xs px-1.5 py-0.5 rounded border font-medium ${
-                              campaign.status === "ACTIVE"
-                                ? "bg-green-500/10 text-green-400 border-green-500/20"
-                                : "bg-neutral-500/10 text-neutral-400 border-neutral-500/20"
-                            }`}
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                              padding: "2px 7px",
+                              borderRadius: 5,
+                              border: campaign.status === "ACTIVE"
+                                ? "1px solid rgba(125,193,40,0.3)"
+                                : "1px solid #1f2a23",
+                              background: campaign.status === "ACTIVE"
+                                ? "rgba(125,193,40,0.12)"
+                                : "rgba(110,122,112,0.12)",
+                              color: campaign.status === "ACTIVE" ? "#7DC128" : "#6e7a70",
+                            }}
                           >
                             {campaign.status === "ACTIVE" ? "Ativa" : campaign.status}
                           </span>
                         </div>
-                        <p className="text-sm font-medium text-white truncate">{campaign.name}</p>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: "#e6efe8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {campaign.name}
+                        </p>
                       </div>
                       {campaign.insights && (
-                        <div className="flex items-center gap-6 flex-shrink-0">
+                        <div style={{ display: "flex", alignItems: "center", gap: 24, flexShrink: 0 }}>
                           <Stat label="Invest." value={formatBRL(campaign.insights.spend)} />
                           <Stat label="ROAS" value={`${formatNumber(campaign.insights.roas)}x`} />
-                          <Stat
-                            label="Compras"
-                            value={formatNumber(campaign.insights.purchases, 0)}
-                          />
+                          <Stat label="Compras" value={formatNumber(campaign.insights.purchases, 0)} />
                           <Stat label="CPA" value={formatBRL(campaign.insights.cpa)} />
                         </div>
                       )}
                       {!campaign.insights && (
-                        <span className="text-xs text-neutral-600">Sem dados no período</span>
+                        <span style={{ fontSize: 12, color: "#4a5450" }}>Sem dados no período</span>
                       )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
+                ))
+              )}
+            </div>
+          </TabsContent>
 
-        {/* TAB: TOP ANÚNCIOS */}
-        <TabsContent value="top-anuncios">
-          <div className="space-y-4 pt-2">
-            {topAdsLoading ? (
-              <LoadingState />
-            ) : topAdsError ? (
-              <ErrorState message={topAdsError} onRetry={fetchTopAds} />
-            ) : topAds.length === 0 && topAdsFetched ? (
-              <EmptyState message="Nenhum anúncio com mínimo de 5 compras no período" />
-            ) : (
-              <div className="space-y-2">
-                {topAds.map((ad, idx) => (
+          {/* TAB: TOP ANÚNCIOS */}
+          <TabsContent value="top-anuncios">
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 8 }}>
+              {topAdsLoading ? (
+                <LoadingState />
+              ) : topAdsError ? (
+                <ErrorState message={topAdsError} onRetry={fetchTopAds} />
+              ) : topAds.length === 0 && topAdsFetched ? (
+                <EmptyState message="Nenhum anúncio com mínimo de 5 compras no período" />
+              ) : (
+                topAds.map((ad, idx) => (
                   <div
                     key={ad.ad_id}
-                    className="bg-neutral-900 border border-neutral-800 rounded-lg p-4"
+                    style={{
+                      background: "#141f18",
+                      border: "1px solid #1f2a23",
+                      borderRadius: 10,
+                      padding: 16,
+                    }}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className="w-7 h-7 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-bold text-red-400">#{idx + 1}</span>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          background: "rgba(125,193,40,0.12)",
+                          border: "1px solid rgba(125,193,40,0.25)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span style={{ fontSize: 11, fontWeight: 700, color: "#7DC128" }}>#{idx + 1}</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{ad.ad_name}</p>
-                        <p className="text-xs text-neutral-500 truncate mt-0.5">
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: "#e6efe8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {ad.ad_name}
+                        </p>
+                        <p style={{ fontSize: 11, color: "#6e7a70", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 2 }}>
                           {ad.campaign_name}
                         </p>
                       </div>
-                      <div className="flex items-center gap-6 flex-shrink-0">
+                      <div style={{ display: "flex", alignItems: "center", gap: 24, flexShrink: 0 }}>
                         <Stat label="Compras" value={formatNumber(ad.purchases, 0)} />
                         <Stat label="Receita" value={formatBRL(ad.revenue)} />
                         <Stat label="CPA" value={formatBRL(ad.cpa)} />
                         <Stat label="ROAS" value={`${formatNumber(ad.roas)}x`} />
-                        <Stat
-                          label="Score"
-                          value={formatNumber(ad.score, 2)}
-                          highlight
-                        />
+                        <Stat label="Score" value={formatNumber(ad.score, 2)} highlight />
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* TAB: GRÁFICOS */}
-        <TabsContent value="graficos">
-          <div className="space-y-6 pt-2">
-            {chartData.length === 0 ? (
-              <EmptyState message="Sem dados de relatórios para exibir gráficos" />
-            ) : (
-              <>
-                <ChartSection
-                  title="Investimento (R$)"
-                  data={chartData}
-                  dataKey="spend"
-                  color="#ef4444"
-                  formatter={formatBRL}
-                />
-                <ChartSection
-                  title="Faturamento (R$)"
-                  data={chartData}
-                  dataKey="revenue"
-                  color="#22c55e"
-                  formatter={formatBRL}
-                />
-                <ChartSection
-                  title="ROAS"
-                  data={chartData}
-                  dataKey="roas"
-                  color="#f59e0b"
-                  formatter={(v) => `${formatNumber(v)}x`}
-                />
-                <ChartSection
-                  title="Compras"
-                  data={chartData}
-                  dataKey="purchases"
-                  color="#a855f7"
-                  formatter={(v) => formatNumber(v, 0)}
-                />
-              </>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* TAB: METAS */}
-        <TabsContent value="metas">
-          <div className="pt-2">
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Target className="w-4 h-4 text-red-400" />
-                <h2 className="text-sm font-semibold text-white">Metas do Cliente</h2>
-              </div>
-              <p className="text-sm text-neutral-400 mb-4">
-                Gerencie as metas mensais de {client.name} na seção de Metas.
-              </p>
-              <a
-                href={`/dashboard/metas`}
-                className="inline-flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors"
-              >
-                Ir para Metas
-                <Target className="w-3.5 h-3.5" />
-              </a>
+                ))
+              )}
             </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+
+          {/* TAB: GRÁFICOS */}
+          <TabsContent value="graficos">
+            <div style={{ display: "flex", flexDirection: "column", gap: 20, paddingTop: 8 }}>
+              {chartData.length === 0 ? (
+                <EmptyState message="Sem dados de relatórios para exibir gráficos" />
+              ) : (
+                <>
+                  <ChartSection title="Investimento (R$)" data={chartData} dataKey="spend" color="#5b8ad4" formatter={formatBRL} />
+                  <ChartSection title="Faturamento (R$)" data={chartData} dataKey="revenue" color="#7DC128" formatter={formatBRL} />
+                  <ChartSection title="ROAS" data={chartData} dataKey="roas" color="#e8a73a" formatter={(v) => `${formatNumber(v)}x`} />
+                  <ChartSection title="Compras" data={chartData} dataKey="purchases" color="#a855f7" formatter={(v) => formatNumber(v, 0)} />
+                </>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* TAB: METAS */}
+          <TabsContent value="metas">
+            <div style={{ paddingTop: 8 }}>
+              <div
+                style={{
+                  background: "#141f18",
+                  border: "1px solid #1f2a23",
+                  borderRadius: 10,
+                  padding: 24,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <Target style={{ width: 16, height: 16, color: "#7DC128" }} />
+                  <h2 style={{ fontSize: 14, fontWeight: 700, color: "#e6efe8" }}>Metas do Cliente</h2>
+                </div>
+                <p style={{ fontSize: 13, color: "#a8b3aa", marginBottom: 16 }}>
+                  Gerencie as metas mensais de {client.name} na seção de Metas.
+                </p>
+                <a
+                  href="/dashboard/metas"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 13,
+                    color: "#7DC128",
+                    textDecoration: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  Ir para Metas
+                  <Target style={{ width: 14, height: 14 }} />
+                </a>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
 
 // Sub-components
 
-function SummaryCard({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string;
-  color: "blue" | "green" | "yellow" | "purple" | "red";
-}) {
-  const colorMap = {
-    blue: "bg-blue-500/10 border-blue-500/20 text-blue-400",
-    green: "bg-green-500/10 border-green-500/20 text-green-400",
-    yellow: "bg-yellow-500/10 border-yellow-500/20 text-yellow-400",
-    purple: "bg-purple-500/10 border-purple-500/20 text-purple-400",
-    red: "bg-red-500/10 border-red-500/20 text-red-400",
-  };
-
+function SummaryCard({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
-    <div className={`rounded-lg border p-4 ${colorMap[color]}`}>
-      <p className="text-xs opacity-70 mb-1">{label}</p>
-      <p className="text-xl font-bold">{value}</p>
+    <div
+      style={{
+        background: "#141f18",
+        border: "1px solid #1f2a23",
+        borderRadius: 10,
+        padding: 16,
+      }}
+    >
+      <p
+        style={{
+          fontSize: 11,
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          color: "#6e7a70",
+          fontWeight: 700,
+          marginBottom: 8,
+        }}
+      >
+        {label}
+      </p>
+      <p
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 22,
+          fontWeight: 700,
+          color: accent,
+          textTransform: "uppercase",
+          letterSpacing: "0.02em",
+        }}
+      >
+        {value}
+      </p>
     </div>
   );
 }
 
-function Stat({
-  label,
-  value,
-  highlight = false,
-}: {
-  label: string;
-  value: string;
-  highlight?: boolean;
-}) {
+function Stat({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className="text-right">
-      <p className="text-xs text-neutral-500">{label}</p>
-      <p className={`text-sm font-medium ${highlight ? "text-red-400" : "text-white"}`}>
+    <div style={{ textAlign: "right" }}>
+      <p style={{ fontSize: 11, color: "#6e7a70", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>{label}</p>
+      <p
+        style={{
+          fontSize: 13,
+          fontWeight: 600,
+          fontFamily: "var(--font-mono)",
+          fontVariantNumeric: "tabular-nums",
+          color: highlight ? "#7DC128" : "#a8b3aa",
+        }}
+      >
         {value}
       </p>
     </div>
@@ -615,29 +694,56 @@ function Stat({
 
 function LoadingState() {
   return (
-    <div className="flex items-center justify-center py-12">
-      <Loader2 className="w-6 h-6 text-red-400 animate-spin" />
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 0" }}>
+      <Loader2 style={{ width: 24, height: 24, color: "#7DC128", animation: "spin 1s linear infinite" }} />
     </div>
   );
 }
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-8 text-center">
-      <p className="text-neutral-500 text-sm">{message}</p>
+    <div
+      style={{
+        background: "#141f18",
+        border: "1px solid #1f2a23",
+        borderRadius: 10,
+        padding: 32,
+        textAlign: "center",
+      }}
+    >
+      <p style={{ fontSize: 14, color: "#4a5450" }}>{message}</p>
     </div>
   );
 }
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-6 flex items-start gap-3">
-      <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-red-400">{message}</p>
+    <div
+      style={{
+        background: "rgba(216,90,74,0.08)",
+        border: "1px solid rgba(216,90,74,0.2)",
+        borderRadius: 10,
+        padding: 20,
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 12,
+      }}
+    >
+      <AlertCircle style={{ width: 16, height: 16, color: "#d85a4a", flexShrink: 0, marginTop: 2 }} />
+      <div>
+        <p style={{ fontSize: 13, color: "#d85a4a" }}>{message}</p>
         <button
           onClick={onRetry}
-          className="mt-2 text-xs text-neutral-400 hover:text-white transition-colors underline"
+          style={{
+            marginTop: 8,
+            fontSize: 12,
+            color: "#6e7a70",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            textDecoration: "underline",
+            padding: 0,
+          }}
         >
           Tentar novamente
         </button>
@@ -668,20 +774,38 @@ function ChartSection({
   formatter: (v: number) => string;
 }) {
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5">
-      <h3 className="text-xs font-semibold text-neutral-300 mb-4">{title}</h3>
-      <div className="h-40">
+    <div
+      style={{
+        background: "#141f18",
+        border: "1px solid #1f2a23",
+        borderRadius: 10,
+        padding: 20,
+      }}
+    >
+      <h3
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          color: "#6e7a70",
+          marginBottom: 16,
+        }}
+      >
+        {title}
+      </h3>
+      <div style={{ height: 160 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#1f2a23" strokeOpacity={0.8} />
             <XAxis
               dataKey="label"
-              tick={{ fill: "#737373", fontSize: 10 }}
+              tick={{ fill: "#6e7a70", fontSize: 10 }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fill: "#737373", fontSize: 10 }}
+              tick={{ fill: "#6e7a70", fontSize: 10 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v: number) => formatter(v)}
@@ -689,11 +813,11 @@ function ChartSection({
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#171717",
-                border: "1px solid #404040",
-                borderRadius: "6px",
-                fontSize: "12px",
-                color: "#fff",
+                backgroundColor: "#0a100c",
+                border: "1px solid #28342a",
+                borderRadius: 8,
+                fontSize: 12,
+                color: "#e6efe8",
               }}
               formatter={(value: number) => [formatter(value), title]}
             />

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { formatBRL, formatNumber, formatPercent } from "@/lib/formatting";
 import { formatBRTDate } from "@/lib/date-utils";
-import { cn } from "@/lib/utils";
 import type { MetaInsights } from "@/lib/meta-ads/client";
 import type { ClientTag } from "@prisma/client";
 import type { UserSummary } from "@/types";
@@ -30,10 +29,10 @@ const TAG_LABELS: Record<ClientTag, string> = {
   GENERICA: "Genérica",
 };
 
-const TAG_COLORS: Record<ClientTag, string> = {
-  MARMITARIA: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  DELIVERY: "bg-red-500/10 text-red-400 border-red-500/20",
-  GENERICA: "bg-neutral-500/10 text-neutral-400 border-neutral-500/20",
+const TAG_STYLES: Record<ClientTag, { background: string; color: string; border: string }> = {
+  MARMITARIA: { background: "rgba(232,167,58,0.12)", color: "#e8a73a", border: "rgba(232,167,58,0.25)" },
+  DELIVERY: { background: "rgba(91,138,212,0.12)", color: "#5b8ad4", border: "rgba(91,138,212,0.25)" },
+  GENERICA: { background: "rgba(110,122,112,0.12)", color: "#a8b3aa", border: "rgba(110,122,112,0.25)" },
 };
 
 const COLUMN_KEYS = [
@@ -115,35 +114,35 @@ export function OverviewTable({ rows, currentUser }: OverviewTableProps) {
     switch (col) {
       case "gestores":
         return (
-          <span className="text-neutral-400 text-xs">
+          <span style={{ color: "#6e7a70", fontSize: 12 }}>
             {row.managerNames.join(", ") || "—"}
           </span>
         );
 
       case "investimento":
         return (
-          <span className="text-neutral-200 tabular-nums">
+          <span style={{ color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", fontSize: 13 }}>
             {m?.spend != null ? formatBRL(m.spend) : "—"}
           </span>
         );
 
       case "alcance":
         return (
-          <span className="text-neutral-200 tabular-nums">
+          <span style={{ color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", fontSize: 13 }}>
             {m?.reach != null ? formatNumber(m.reach, 0) : "—"}
           </span>
         );
 
       case "compras":
         return (
-          <span className="text-neutral-200 tabular-nums">
+          <span style={{ color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", fontSize: 13 }}>
             {m?.purchases != null ? formatNumber(m.purchases, 0) : "—"}
           </span>
         );
 
       case "receita":
         return (
-          <span className="text-neutral-200 tabular-nums">
+          <span style={{ color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", fontSize: 13 }}>
             {m?.revenue != null ? formatBRL(m.revenue) : "—"}
           </span>
         );
@@ -154,11 +153,11 @@ export function OverviewTable({ rows, currentUser }: OverviewTableProps) {
         const color =
           roas != null && goalRoas != null
             ? roas >= goalRoas
-              ? "text-green-400"
-              : "text-red-400"
-            : "text-neutral-200";
+              ? "#7DC128"
+              : "#d85a4a"
+            : "#a8b3aa";
         return (
-          <span className={cn("tabular-nums", color)}>
+          <span style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", fontSize: 13, color }}>
             {roas != null ? roas.toFixed(2) : "—"}
           </span>
         );
@@ -170,11 +169,11 @@ export function OverviewTable({ rows, currentUser }: OverviewTableProps) {
         const color =
           cpa != null && cpa > 0 && goalCpa != null
             ? cpa <= goalCpa
-              ? "text-green-400"
-              : "text-red-400"
-            : "text-neutral-200";
+              ? "#7DC128"
+              : "#d85a4a"
+            : "#a8b3aa";
         return (
-          <span className={cn("tabular-nums", color)}>
+          <span style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", fontSize: 13, color }}>
             {cpa != null && cpa > 0 ? formatBRL(cpa) : "—"}
           </span>
         );
@@ -182,21 +181,29 @@ export function OverviewTable({ rows, currentUser }: OverviewTableProps) {
 
       case "ctr":
         return (
-          <span className="text-neutral-200 tabular-nums">
+          <span style={{ color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", fontSize: 13 }}>
             {m?.ctr != null ? formatPercent(m.ctr) : "—"}
           </span>
         );
 
       case "cpm":
         return (
-          <span className="text-neutral-200 tabular-nums">
+          <span style={{ color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", fontSize: 13 }}>
             {m?.cpm != null ? formatBRL(m.cpm) : "—"}
           </span>
         );
 
       case "ultimoRelatorio":
         return (
-          <span className="text-neutral-400 text-xs whitespace-nowrap">
+          <span
+            style={{
+              color: "#6e7a70",
+              fontSize: 11,
+              fontFamily: "var(--font-mono)",
+              fontVariantNumeric: "tabular-nums",
+              whiteSpace: "nowrap",
+            }}
+          >
             {row.lastReportDate ? formatBRTDate(row.lastReportDate) : "—"}
           </span>
         );
@@ -204,116 +211,257 @@ export function OverviewTable({ rows, currentUser }: OverviewTableProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          type="text"
-          placeholder="Buscar cliente..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="bg-neutral-800 border border-neutral-700 rounded-md px-3 py-1.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-500 w-48"
-        />
-
-        <div className="flex items-center gap-1">
-          {(["TODOS", "MARMITARIA", "DELIVERY", "GENERICA"] as const).map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setTagFilter(tag)}
-              className={cn(
-                "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
-                tagFilter === tag
-                  ? "bg-neutral-700 text-white"
-                  : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800"
-              )}
-            >
-              {tag === "TODOS" ? "Todos" : TAG_LABELS[tag]}
-            </button>
-          ))}
+    <div className="flex flex-col" style={{ minHeight: "100vh", background: "#0d1410" }}>
+      {/* Topbar */}
+      <div
+        className="flex-shrink-0 flex items-center gap-5 px-7 sticky top-0 z-10"
+        style={{
+          height: 64,
+          borderBottom: "1px solid #1f2a23",
+          background: "rgba(13,20,16,0.85)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <div className="flex items-center gap-2 text-sm">
+          <span style={{ color: "#6e7a70" }}>Métricas</span>
+          <span style={{ color: "#4a5450" }}>/</span>
+          <span style={{ color: "#e6efe8", fontWeight: 600 }}>Overview</span>
         </div>
 
-        {isPrivileged && allManagers.length > 0 && (
-          <select
-            value={managerFilter}
-            onChange={(e) => setManagerFilter(e.target.value)}
-            className="bg-neutral-800 border border-neutral-700 rounded-md px-2 py-1.5 text-sm text-neutral-300 focus:outline-none focus:border-neutral-500"
-          >
-            <option value="TODOS">Todos os gestores</option>
-            {allManagers.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        )}
+        <div className="ml-auto flex items-center gap-3">
+          {/* Search */}
+          <input
+            type="text"
+            placeholder="Buscar cliente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              background: "#0f1813",
+              border: "1px solid #1f2a23",
+              borderRadius: 8,
+              padding: "7px 14px",
+              fontSize: 13,
+              color: "#e6efe8",
+              outline: "none",
+              width: 200,
+            }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "#7DC128")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "#1f2a23")}
+          />
 
-        <span className="text-xs text-neutral-500 ml-auto">
-          {filtered.length} cliente(s)
-        </span>
+          {/* Manager select */}
+          {isPrivileged && allManagers.length > 0 && (
+            <select
+              value={managerFilter}
+              onChange={(e) => setManagerFilter(e.target.value)}
+              style={{
+                background: "#0f1813",
+                border: "1px solid #1f2a23",
+                borderRadius: 8,
+                padding: "7px 14px",
+                fontSize: 13,
+                color: "#a8b3aa",
+                outline: "none",
+                cursor: "pointer",
+              }}
+            >
+              <option value="TODOS">Todos os gestores</option>
+              {allManagers.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-neutral-800">
-              <th className="sticky left-0 bg-neutral-950 text-left py-2 pr-4 text-xs text-neutral-500 font-medium whitespace-nowrap z-10">
-                Cliente
-              </th>
-              {columns.map((col) => (
-                <th
-                  key={col}
-                  className="text-left py-2 px-3 text-xs text-neutral-500 font-medium whitespace-nowrap"
-                >
-                  {COLUMN_LABELS[col]}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
+      {/* Content */}
+      <div style={{ padding: "20px 28px", flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Tag tabs */}
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {(["TODOS", "MARMITARIA", "DELIVERY", "GENERICA"] as const).map((tag) => {
+            const active = tagFilter === tag;
+            const tagStyle = tag !== "TODOS" ? TAG_STYLES[tag as ClientTag] : null;
+            return (
+              <button
+                key={tag}
+                onClick={() => setTagFilter(tag)}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 7,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                  border: active
+                    ? `1px solid ${tagStyle?.border ?? "rgba(125,193,40,0.4)"}`
+                    : "1px solid transparent",
+                  background: active
+                    ? (tagStyle?.background ?? "rgba(125,193,40,0.12)")
+                    : "transparent",
+                  color: active
+                    ? (tagStyle?.color ?? "#7DC128")
+                    : "#6e7a70",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {tag === "TODOS" ? "Todos" : TAG_LABELS[tag as ClientTag]}
+              </button>
+            );
+          })}
+          <span
+            style={{
+              marginLeft: "auto",
+              fontSize: 11,
+              color: "#4a5450",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            {filtered.length} cliente(s)
+          </span>
+        </div>
+
+        {/* Table */}
+        <div
+          style={{
+            background: "#141f18",
+            border: "1px solid #1f2a23",
+            borderRadius: 10,
+            overflow: "auto",
+          }}
+        >
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
               <tr>
-                <td
-                  colSpan={columns.length + 1}
-                  className="py-8 text-center text-sm text-neutral-600"
+                <th
+                  style={{
+                    position: "sticky",
+                    left: 0,
+                    background: "#141f18",
+                    textAlign: "left",
+                    padding: "10px 16px",
+                    fontSize: 11,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "#6e7a70",
+                    fontWeight: 700,
+                    borderBottom: "1px solid #1f2a23",
+                    whiteSpace: "nowrap",
+                    zIndex: 10,
+                  }}
                 >
-                  Nenhum cliente encontrado
-                </td>
+                  Cliente
+                </th>
+                {columns.map((col) => (
+                  <th
+                    key={col}
+                    style={{
+                      textAlign: "left",
+                      padding: "10px 16px",
+                      fontSize: 11,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      color: "#6e7a70",
+                      fontWeight: 700,
+                      borderBottom: "1px solid #1f2a23",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {COLUMN_LABELS[col]}
+                  </th>
+                ))}
               </tr>
-            ) : (
-              filtered.map((row) => (
-                <tr
-                  key={row.clientId}
-                  className="border-b border-neutral-800/40 hover:bg-neutral-800/20 transition-colors"
-                >
-                  <td className="sticky left-0 bg-neutral-950 py-3 pr-4 z-10">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/dashboard/clients/${row.clientId}`}
-                        className="text-white font-medium hover:text-red-400 transition-colors whitespace-nowrap"
-                      >
-                        {row.clientName}
-                      </Link>
-                      <span
-                        className={cn(
-                          "inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium",
-                          TAG_COLORS[row.tag]
-                        )}
-                      >
-                        {TAG_LABELS[row.tag]}
-                      </span>
-                    </div>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={columns.length + 1}
+                    style={{
+                      padding: "32px 16px",
+                      textAlign: "center",
+                      fontSize: 14,
+                      color: "#4a5450",
+                    }}
+                  >
+                    Nenhum cliente encontrado
                   </td>
-                  {columns.map((col) => (
-                    <td key={col} className="py-3 px-3 whitespace-nowrap">
-                      {renderCell(col, row)}
-                    </td>
-                  ))}
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filtered.map((row, idx) => (
+                  <tr
+                    key={row.clientId}
+                    style={{
+                      borderBottom: idx === filtered.length - 1 ? "none" : "1px dashed #1f2a23",
+                      transition: "background 0.1s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#182219";
+                      const sticky = e.currentTarget.querySelector("td[data-sticky]") as HTMLElement;
+                      if (sticky) sticky.style.background = "#182219";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                      const sticky = e.currentTarget.querySelector("td[data-sticky]") as HTMLElement;
+                      if (sticky) sticky.style.background = "#141f18";
+                    }}
+                  >
+                    <td
+                      data-sticky="true"
+                      style={{
+                        position: "sticky",
+                        left: 0,
+                        background: "#141f18",
+                        padding: "12px 16px",
+                        zIndex: 5,
+                        transition: "background 0.1s",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <Link
+                          href={`/dashboard/clients/${row.clientId}`}
+                          style={{
+                            fontWeight: 600,
+                            color: "#e6efe8",
+                            textDecoration: "none",
+                            whiteSpace: "nowrap",
+                            fontSize: 14,
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = "#7DC128")}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = "#e6efe8")}
+                        >
+                          {row.clientName}
+                        </Link>
+                        <span
+                          style={{
+                            background: TAG_STYLES[row.tag].background,
+                            color: TAG_STYLES[row.tag].color,
+                            border: `1px solid ${TAG_STYLES[row.tag].border}`,
+                            borderRadius: 5,
+                            padding: "2px 7px",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          {TAG_LABELS[row.tag]}
+                        </span>
+                      </div>
+                    </td>
+                    {columns.map((col) => (
+                      <td key={col} style={{ padding: "12px 16px", whiteSpace: "nowrap" }}>
+                        {renderCell(col, row)}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

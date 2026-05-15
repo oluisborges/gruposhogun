@@ -4,7 +4,7 @@ import { InvestmentCalculator } from "@/components/calculadoras/investment-calcu
 export default async function InvestimentoPage() {
   await requireAuth()
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col" style={{ minHeight: "100vh" }}>
       <InvestmentCalculator />
     </div>
   )

@@ -57,9 +57,16 @@ const METRIC_OPTIONS: { key: MetricKey; label: string; format: (v: number) => st
   { key: "cpm", label: "CPM", format: formatBRL },
 ];
 
+// Design system multi-client colors
 const LINE_COLORS = [
-  "#ef4444", "#f97316", "#eab308", "#22c55e",
-  "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899",
+  "#7DC128", // lime
+  "#e8a73a", // warn
+  "#d85a4a", // bad/red
+  "#5b8ad4", // blue
+  "#9be03a", // lime-2
+  "#a855f7", // purple
+  "#06b6d4", // cyan
+  "#ec4899", // pink
 ];
 
 type ChartType = "line" | "bar";
@@ -126,196 +133,297 @@ export function GraficosBoard({ reports, clients, currentUser }: GraficosBoardPr
 
   const selectedClientList = clients.filter((c) => selectedClients.has(c.id));
 
+  const tooltipStyle = {
+    backgroundColor: "#0a100c",
+    border: "1px solid #28342a",
+    borderRadius: 8,
+    color: "#e6efe8",
+    fontSize: 12,
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">Histórico & Gráficos</h1>
-        <p className="text-neutral-400 text-sm mt-1">
-          Evolução de métricas por cliente ao longo do tempo
-        </p>
+    <div className="flex flex-col" style={{ minHeight: "100vh", background: "#0d1410" }}>
+      {/* Topbar */}
+      <div
+        className="flex-shrink-0 flex items-center gap-5 px-7 sticky top-0 z-10"
+        style={{
+          height: 64,
+          borderBottom: "1px solid #1f2a23",
+          background: "rgba(13,20,16,0.85)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <div className="flex items-center gap-2 text-sm">
+          <span style={{ color: "#6e7a70" }}>Financeiro</span>
+          <span style={{ color: "#4a5450" }}>/</span>
+          <span style={{ color: "#e6efe8", fontWeight: 600 }}>Histórico & Gráficos</span>
+        </div>
       </div>
 
-      {/* Controls */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 space-y-4">
-        {/* Metric selector */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-neutral-500">Métrica</label>
-          <div className="flex flex-wrap gap-2">
-            {METRIC_OPTIONS.map((opt) => (
-              <button
-                key={opt.key}
-                onClick={() => setSelectedMetric(opt.key)}
-                className={`px-3 py-1 rounded text-xs font-medium border transition-colors ${
-                  selectedMetric === opt.key
-                    ? "bg-red-500/20 border-red-500/40 text-red-400"
-                    : "bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-white"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Chart type */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-neutral-500">Tipo de gráfico</label>
-          <div className="flex gap-2">
-            {(["line", "bar"] as ChartType[]).map((t) => (
-              <button
-                key={t}
-                onClick={() => setChartType(t)}
-                className={`px-3 py-1 rounded text-xs font-medium border transition-colors ${
-                  chartType === t
-                    ? "bg-red-500/20 border-red-500/40 text-red-400"
-                    : "bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-white"
-                }`}
-              >
-                {t === "line" ? "Linha" : "Barra"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Client filter */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-neutral-500">Clientes</label>
-            <button
-              onClick={toggleAllClients}
-              className="text-xs text-neutral-500 hover:text-white transition-colors"
+      {/* Content */}
+      <div style={{ padding: "28px 28px", flex: 1, display: "flex", flexDirection: "column", gap: 20 }}>
+        {/* Filter bar */}
+        <div
+          style={{
+            background: "#141f18",
+            border: "1px solid #1f2a23",
+            borderRadius: 10,
+            padding: 20,
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}
+        >
+          {/* Metric selector */}
+          <div>
+            <p
+              style={{
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: "0.1em",
+                color: "#6e7a70",
+                fontWeight: 700,
+                marginBottom: 8,
+              }}
             >
-              {selectedClients.size === clients.length ? "Desmarcar todos" : "Selecionar todos"}
-            </button>
+              Métrica
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {METRIC_OPTIONS.map((opt) => {
+                const active = selectedMetric === opt.key;
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => setSelectedMetric(opt.key)}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: 7,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      border: active ? "1px solid rgba(125,193,40,0.4)" : "1px solid #1f2a23",
+                      background: active ? "rgba(125,193,40,0.12)" : "#0f1813",
+                      color: active ? "#7DC128" : "#6e7a70",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {clients.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => toggleClient(c.id)}
-                className={`px-3 py-1 rounded text-xs font-medium border transition-colors ${
-                  selectedClients.has(c.id)
-                    ? "border-transparent text-white"
-                    : "bg-neutral-800 border-neutral-700 text-neutral-600"
-                }`}
-                style={
-                  selectedClients.has(c.id)
-                    ? { backgroundColor: clientColors[c.id] + "33", borderColor: clientColors[c.id] + "80", color: clientColors[c.id] }
-                    : {}
-                }
+
+          {/* Chart type + client filter in row */}
+          <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+            {/* Chart type toggle */}
+            <div>
+              <p
+                style={{
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "#6e7a70",
+                  fontWeight: 700,
+                  marginBottom: 8,
+                }}
               >
-                {c.name}
-              </button>
-            ))}
+                Tipo de Gráfico
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  background: "#0f1813",
+                  border: "1px solid #1f2a23",
+                  borderRadius: 8,
+                  padding: 3,
+                  gap: 2,
+                }}
+              >
+                {(["line", "bar"] as ChartType[]).map((t) => {
+                  const active = chartType === t;
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => setChartType(t)}
+                      style={{
+                        padding: "5px 14px",
+                        borderRadius: 6,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        border: "none",
+                        background: active ? "#1A3D2B" : "transparent",
+                        color: active ? "#e6efe8" : "#6e7a70",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      {t === "line" ? "Linha" : "Barra"}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Client filter */}
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <p
+                  style={{
+                    fontSize: 11,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "#6e7a70",
+                    fontWeight: 700,
+                  }}
+                >
+                  Clientes
+                </p>
+                <button
+                  onClick={toggleAllClients}
+                  style={{ fontSize: 11, color: "#6e7a70", background: "none", border: "none", cursor: "pointer" }}
+                >
+                  {selectedClients.size === clients.length ? "Desmarcar todos" : "Selecionar todos"}
+                </button>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {clients.map((c) => {
+                  const active = selectedClients.has(c.id);
+                  const color = clientColors[c.id];
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => toggleClient(c.id)}
+                      style={{
+                        padding: "5px 12px",
+                        borderRadius: 7,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                        background: active ? `${color}22` : "#0f1813",
+                        border: active ? `1px solid ${color}66` : "1px solid #1f2a23",
+                        color: active ? color : "#4a5450",
+                      }}
+                    >
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Chart */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-        {chartData.length === 0 ? (
-          <div className="flex items-center justify-center h-[300px] text-neutral-600">
-            Nenhum dado disponível para o período selecionado
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            {chartType === "line" ? (
-              <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fill: "#737373", fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={{ stroke: "#404040" }}
-                />
-                <YAxis
-                  tick={{ fill: "#737373", fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={{ stroke: "#404040" }}
-                  tickFormatter={(v: number) => metricOption.format(v)}
-                  width={80}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #404040",
-                    borderRadius: "6px",
-                    color: "#e5e5e5",
-                    fontSize: "12px",
-                  }}
-                  formatter={(value: number, name: string) => [
-                    metricOption.format(value),
-                    clients.find((c) => c.id === name)?.name ?? name,
-                  ]}
-                />
-                <Legend
-                  formatter={(value: string) => (
-                    <span style={{ color: "#a3a3a3", fontSize: "12px" }}>
-                      {clients.find((c) => c.id === value)?.name ?? value}
-                    </span>
-                  )}
-                />
-                {selectedClientList.map((c) => (
-                  <Line
-                    key={c.id}
-                    type="monotone"
-                    dataKey={c.id}
-                    stroke={clientColors[c.id]}
-                    strokeWidth={2}
-                    dot={{ r: 3, fill: clientColors[c.id] }}
-                    activeDot={{ r: 5 }}
+        {/* Chart */}
+        <div
+          style={{
+            background: "#141f18",
+            border: "1px solid #1f2a23",
+            borderRadius: 10,
+            padding: 20,
+          }}
+        >
+          {chartData.length === 0 ? (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: 300,
+                color: "#4a5450",
+                fontSize: 14,
+              }}
+            >
+              Nenhum dado disponível para o período selecionado
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              {chartType === "line" ? (
+                <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1f2a23" strokeOpacity={0.8} />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: "#6e7a70", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: "#1f2a23" }}
                   />
-                ))}
-              </LineChart>
-            ) : (
-              <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fill: "#737373", fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={{ stroke: "#404040" }}
-                />
-                <YAxis
-                  tick={{ fill: "#737373", fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={{ stroke: "#404040" }}
-                  tickFormatter={(v: number) => metricOption.format(v)}
-                  width={80}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#171717",
-                    border: "1px solid #404040",
-                    borderRadius: "6px",
-                    color: "#e5e5e5",
-                    fontSize: "12px",
-                  }}
-                  formatter={(value: number, name: string) => [
-                    metricOption.format(value),
-                    clients.find((c) => c.id === name)?.name ?? name,
-                  ]}
-                />
-                <Legend
-                  formatter={(value: string) => (
-                    <span style={{ color: "#a3a3a3", fontSize: "12px" }}>
-                      {clients.find((c) => c.id === value)?.name ?? value}
-                    </span>
-                  )}
-                />
-                {selectedClientList.map((c) => (
-                  <Bar
-                    key={c.id}
-                    dataKey={c.id}
-                    fill={clientColors[c.id]}
-                    radius={[2, 2, 0, 0]}
+                  <YAxis
+                    tick={{ fill: "#6e7a70", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: "#1f2a23" }}
+                    tickFormatter={(v: number) => metricOption.format(v)}
+                    width={80}
                   />
-                ))}
-              </BarChart>
-            )}
-          </ResponsiveContainer>
-        )}
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    formatter={(value: number, name: string) => [
+                      metricOption.format(value),
+                      clients.find((c) => c.id === name)?.name ?? name,
+                    ]}
+                  />
+                  <Legend
+                    formatter={(value: string) => (
+                      <span style={{ color: "#a8b3aa", fontSize: 12 }}>
+                        {clients.find((c) => c.id === value)?.name ?? value}
+                      </span>
+                    )}
+                  />
+                  {selectedClientList.map((c) => (
+                    <Line
+                      key={c.id}
+                      type="monotone"
+                      dataKey={c.id}
+                      stroke={clientColors[c.id]}
+                      strokeWidth={2}
+                      dot={{ r: 3, fill: clientColors[c.id] }}
+                      activeDot={{ r: 5 }}
+                    />
+                  ))}
+                </LineChart>
+              ) : (
+                <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1f2a23" strokeOpacity={0.8} />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: "#6e7a70", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: "#1f2a23" }}
+                  />
+                  <YAxis
+                    tick={{ fill: "#6e7a70", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: "#1f2a23" }}
+                    tickFormatter={(v: number) => metricOption.format(v)}
+                    width={80}
+                  />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    formatter={(value: number, name: string) => [
+                      metricOption.format(value),
+                      clients.find((c) => c.id === name)?.name ?? name,
+                    ]}
+                  />
+                  <Legend
+                    formatter={(value: string) => (
+                      <span style={{ color: "#a8b3aa", fontSize: 12 }}>
+                        {clients.find((c) => c.id === value)?.name ?? value}
+                      </span>
+                    )}
+                  />
+                  {selectedClientList.map((c) => (
+                    <Bar
+                      key={c.id}
+                      dataKey={c.id}
+                      fill={clientColors[c.id]}
+                      radius={[2, 2, 0, 0]}
+                    />
+                  ))}
+                </BarChart>
+              )}
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
     </div>
   );
