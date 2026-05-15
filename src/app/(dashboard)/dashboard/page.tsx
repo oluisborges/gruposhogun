@@ -438,10 +438,7 @@ export default async function DashboardPage() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex flex-col gap-1 transition-colors"
-                    style={{ border: "1px solid #1f2a23", background: "#0f1813", borderRadius: 8, padding: 12, cursor: "pointer" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#2a583e"; e.currentTarget.style.background = "#101e15"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#1f2a23"; e.currentTarget.style.background = "#0f1813"; }}
+                    className="flex flex-col gap-1 transition-colors rounded-[8px] p-3 border border-[#1f2a23] bg-[#0f1813] hover:border-[#2a583e] hover:bg-[#101e15]"
                   >
                     <span style={{ fontSize: 18 }}>{item.icon}</span>
                     <span className="font-bold text-[#e6efe8]" style={{ fontSize: 12.5 }}>{item.label}</span>
