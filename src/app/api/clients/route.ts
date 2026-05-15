@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
-import type { ClientTag } from "@prisma/client";
+import { encrypt } from "@/lib/crypto";
+import type { ClientTag, AccountObjective } from "@prisma/client";
 
 export async function GET(request: Request) {
   const user = await getSessionUser();
@@ -51,12 +52,23 @@ export async function POST(request: Request) {
     usesPix?: boolean;
     pixValue?: number;
     managerIds?: string[];
+    metaAccount?: {
+      accountId: string;
+      accountName?: string;
+      token: string;
+      objective?: AccountObjective;
+      campaignFilter?: string[];
+    };
   };
 
-  const { name, tag, contactName, contactPhone, contactEmail, usesPix, pixValue, managerIds } = body;
+  const { name, tag, contactName, contactPhone, contactEmail, usesPix, pixValue, managerIds, metaAccount } = body;
 
   if (!name || name.trim() === "") {
     return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 });
+  }
+
+  if (metaAccount && (!metaAccount.accountId || !metaAccount.token)) {
+    return NextResponse.json({ error: "ID da conta e token são obrigatórios para vincular Meta Ads" }, { status: 400 });
   }
 
   const client = await prisma.client.create({
@@ -71,6 +83,19 @@ export async function POST(request: Request) {
       managers: {
         create: (managerIds ?? []).map((userId) => ({ userId })),
       },
+      ...(metaAccount
+        ? {
+            metaAccounts: {
+              create: {
+                accountId: metaAccount.accountId.trim(),
+                accountName: metaAccount.accountName?.trim() || null,
+                tokenEncrypted: encrypt(metaAccount.token.trim()),
+                objective: metaAccount.objective ?? "CARDAPIO",
+                campaignFilter: metaAccount.campaignFilter ?? [],
+              },
+            },
+          }
+        : {}),
     },
     include: {
       managers: { include: { user: true } },

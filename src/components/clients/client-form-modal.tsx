@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { ClientTag } from "@prisma/client";
+import { X, ChevronDown, ChevronUp, Zap } from "lucide-react";
+import type { ClientTag, AccountObjective } from "@prisma/client";
 import type { UserSummary } from "@/types/index";
 
 const TAG_OPTIONS: { value: ClientTag; label: string }[] = [
@@ -18,7 +17,12 @@ const TAG_ACTIVE_STYLE: Record<ClientTag, { bg: string; color: string; border: s
   GENERICA: { bg: "rgba(125,193,40,0.12)", color: "#7DC128", border: "rgba(125,193,40,0.3)" },
 };
 
-// Minimal client shape needed by the form
+const OBJECTIVE_OPTIONS: { value: AccountObjective; label: string }[] = [
+  { value: "CARDAPIO", label: "Cardápio" },
+  { value: "LEADS", label: "Leads" },
+  { value: "WHATSAPP", label: "WhatsApp" },
+];
+
 interface ClientFormData {
   id: string;
   name: string;
@@ -60,6 +64,13 @@ const labelStyle: React.CSSProperties = {
   marginBottom: 6,
 };
 
+const sectionStyle: React.CSSProperties = {
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  borderRadius: 8,
+  overflow: "hidden",
+};
+
 export function ClientFormModal({
   open,
   onOpenChange,
@@ -70,6 +81,7 @@ export function ClientFormModal({
   const [managers, setManagers] = useState<UserSummary[]>([]);
   const [error, setError] = useState("");
 
+  // Basic fields
   const [name, setName] = useState(client?.name ?? "");
   const [tag, setTag] = useState<ClientTag>(client?.tag ?? "GENERICA");
   const [contactName, setContactName] = useState(client?.contactName ?? "");
@@ -81,6 +93,14 @@ export function ClientFormModal({
     client?.managers.map((m) => m.userId) ?? []
   );
 
+  // Meta Ads account (optional, create-only)
+  const [showMetaSection, setShowMetaSection] = useState(false);
+  const [metaAccountId, setMetaAccountId] = useState("");
+  const [metaAccountName, setMetaAccountName] = useState("");
+  const [metaToken, setMetaToken] = useState("");
+  const [metaObjective, setMetaObjective] = useState<AccountObjective>("CARDAPIO");
+  const [metaCampaignFilter, setMetaCampaignFilter] = useState("");
+
   useEffect(() => {
     if (open) {
       fetch("/api/users?role=MANAGER")
@@ -90,7 +110,6 @@ export function ClientFormModal({
     }
   }, [open]);
 
-  // Reset form when client changes
   useEffect(() => {
     setName(client?.name ?? "");
     setTag(client?.tag ?? "GENERICA");
@@ -100,6 +119,12 @@ export function ClientFormModal({
     setUsesPix(client?.usesPix ?? false);
     setPixValue(client?.pixValue?.toString() ?? "");
     setSelectedManagerIds(client?.managers.map((m) => m.userId) ?? []);
+    setShowMetaSection(false);
+    setMetaAccountId("");
+    setMetaAccountName("");
+    setMetaToken("");
+    setMetaObjective("CARDAPIO");
+    setMetaCampaignFilter("");
     setError("");
   }, [client, open]);
 
@@ -111,13 +136,29 @@ export function ClientFormModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) {
-      setError("Nome é obrigatório");
+    if (!name.trim()) { setError("Nome é obrigatório"); return; }
+
+    if (showMetaSection && metaAccountId && !metaToken) {
+      setError("Token de acesso é obrigatório para vincular uma conta Meta");
       return;
     }
 
     setLoading(true);
     setError("");
+
+    const metaAccount =
+      showMetaSection && metaAccountId.trim() && metaToken.trim()
+        ? {
+            accountId: metaAccountId.trim(),
+            accountName: metaAccountName.trim() || undefined,
+            token: metaToken.trim(),
+            objective: metaObjective,
+            campaignFilter: metaCampaignFilter
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
+          }
+        : undefined;
 
     const body = {
       name: name.trim(),
@@ -128,6 +169,7 @@ export function ClientFormModal({
       usesPix,
       pixValue: usesPix && pixValue ? parseFloat(pixValue) : undefined,
       managerIds: selectedManagerIds,
+      metaAccount,
     };
 
     try {
@@ -167,13 +209,13 @@ export function ClientFormModal({
         border: "1px solid #28342a",
         borderRadius: 10,
         width: "100%",
-        maxWidth: 480,
+        maxWidth: 520,
         maxHeight: "90vh",
         overflowY: "auto",
         boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
       }}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid #1f2a23" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid #1f2a23", position: "sticky", top: 0, background: "#141f18", zIndex: 1 }}>
           <h2 style={{
             fontFamily: "var(--font-display)",
             fontSize: 20,
@@ -202,17 +244,17 @@ export function ClientFormModal({
 
           {/* Nome */}
           <div>
-            <label style={labelStyle}>Nome *</label>
+            <label style={labelStyle}>Nome da empresa *</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Nome do cliente"
+              placeholder="Ex: Marmitaria da Maria"
               style={inputStyle}
               required
             />
           </div>
 
-          {/* Tag */}
+          {/* Segmento */}
           <div>
             <label style={labelStyle}>Segmento</label>
             <div style={{ display: "flex", gap: 8 }}>
@@ -291,6 +333,7 @@ export function ClientFormModal({
                   cursor: "pointer",
                   transition: "all .2s",
                   padding: 0,
+                  flexShrink: 0,
                 }}
               >
                 <span
@@ -325,11 +368,136 @@ export function ClientFormModal({
             )}
           </div>
 
+          {/* Meta Ads — only on create */}
+          {!client && (
+            <div style={sectionStyle}>
+              <button
+                type="button"
+                onClick={() => setShowMetaSection(!showMetaSection)}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 14px",
+                  background: "transparent",
+                  border: "none",
+                  color: showMetaSection ? "#7DC128" : "#a8b3aa",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Zap style={{ width: 15, height: 15 }} />
+                  Vincular Conta Meta Ads
+                  <span style={{ fontSize: 11, color: "#4a5450", fontWeight: 400 }}>(opcional)</span>
+                </span>
+                {showMetaSection
+                  ? <ChevronUp style={{ width: 16, height: 16 }} />
+                  : <ChevronDown style={{ width: 16, height: 16 }} />
+                }
+              </button>
+
+              {showMetaSection && (
+                <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 12, borderTop: "1px solid #1f2a23" }}>
+                  <div style={{ paddingTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
+                    {/* Account ID + Name row */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      <div>
+                        <label style={labelStyle}>ID da Conta</label>
+                        <input
+                          value={metaAccountId}
+                          onChange={(e) => setMetaAccountId(e.target.value)}
+                          placeholder="act_XXXXXXXX"
+                          style={inputStyle}
+                        />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Nome da Conta</label>
+                        <input
+                          value={metaAccountName}
+                          onChange={(e) => setMetaAccountName(e.target.value)}
+                          placeholder="Nome interno"
+                          style={inputStyle}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Token */}
+                    <div>
+                      <label style={labelStyle}>Token de Acesso</label>
+                      <input
+                        value={metaToken}
+                        onChange={(e) => setMetaToken(e.target.value)}
+                        placeholder="EAAxxxxxxxx..."
+                        style={inputStyle}
+                        type="password"
+                        autoComplete="off"
+                      />
+                    </div>
+
+                    {/* Objective */}
+                    <div>
+                      <label style={labelStyle}>Objetivo Principal</label>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {OBJECTIVE_OPTIONS.map((opt) => {
+                          const active = metaObjective === opt.value;
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => setMetaObjective(opt.value)}
+                              style={{
+                                flex: 1,
+                                padding: "8px 4px",
+                                fontSize: 12,
+                                fontWeight: 600,
+                                borderRadius: 8,
+                                border: active ? "1px solid rgba(125,193,40,0.4)" : "1px solid #1f2a23",
+                                background: active ? "rgba(125,193,40,0.12)" : "#0f1813",
+                                color: active ? "#7DC128" : "#6e7a70",
+                                cursor: "pointer",
+                                transition: "all .15s",
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Campaign Filter */}
+                    <div>
+                      <label style={labelStyle}>Filtro de Campanhas</label>
+                      <textarea
+                        value={metaCampaignFilter}
+                        onChange={(e) => setMetaCampaignFilter(e.target.value)}
+                        placeholder="Palavras-chave separadas por vírgula. Apenas campanhas cujo nome contenha algum desses termos serão incluídas nos relatórios. Deixe em branco para incluir todas as campanhas da conta."
+                        style={{
+                          ...inputStyle,
+                          resize: "vertical",
+                          minHeight: 72,
+                          lineHeight: 1.5,
+                          fontFamily: "inherit",
+                        }}
+                      />
+                      <p style={{ fontSize: 11, color: "#4a5450", marginTop: 4 }}>
+                        Ex: cardapio, delivery, promoção
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Managers */}
           {managers.length > 0 && (
             <div>
-              <label style={labelStyle}>Gestores</label>
-              <div style={{ display: "flex", flexDirection: "column", gap: 2, maxHeight: 140, overflowY: "auto" }}>
+              <label style={labelStyle}>Gestores responsáveis</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, maxHeight: 160, overflowY: "auto", border: "1px solid #1f2a23", borderRadius: 8, padding: "4px 0" }}>
                 {managers.map((m) => (
                   <label
                     key={m.id}
@@ -337,7 +505,7 @@ export function ClientFormModal({
                       display: "flex",
                       alignItems: "center",
                       gap: 10,
-                      padding: "6px 8px",
+                      padding: "7px 12px",
                       borderRadius: 6,
                       cursor: "pointer",
                       background: selectedManagerIds.includes(m.id) ? "rgba(125,193,40,0.08)" : "transparent",
