@@ -4,201 +4,180 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
-  LayoutDashboard,
-  Users,
-  CheckSquare,
-  LogOut,
-  BarChart3,
-  Target,
-  DollarSign,
-  Trophy,
-  TrendingUp,
-  Calculator,
-  Database,
-  UserCircle,
+  LayoutDashboard, BarChart3, Users, CheckSquare, UserCog,
+  Target, DollarSign, Trophy, TrendingUp, Calculator, Database,
+  UserCircle, LogOut, FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/formatting";
 import type { Role } from "@prisma/client";
 
-interface SidebarUser {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-}
+interface SidebarUser { id: string; name: string; email: string; role: Role }
 
-interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  roles?: Role[];
-}
-
-const NAV_ITEMS: NavItem[] = [
+const NAV_GROUPS = [
   {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
+    label: "Operação",
+    items: [
+      { label: "Dashboard",   href: "/dashboard",          icon: LayoutDashboard },
+      { label: "Clientes",    href: "/dashboard/clients",  icon: Users },
+      { label: "Tarefas",     href: "/dashboard/tasks",    icon: CheckSquare },
+      { label: "Métricas",    href: "/dashboard/overview", icon: BarChart3 },
+      { label: "Metas",       href: "/dashboard/metas",    icon: Target },
+    ],
   },
   {
-    label: "Overview",
-    href: "/dashboard/overview",
-    icon: BarChart3,
+    label: "Financeiro",
+    items: [
+      { label: "PIX",         href: "/dashboard/pix",      icon: DollarSign },
+      { label: "Relatórios",  href: "/dashboard/graficos", icon: FileText },
+      { label: "Ranking",     href: "/dashboard/ranking",  icon: Trophy, roles: ["OWNER", "COORDINATOR"] as Role[] },
+    ],
   },
   {
-    label: "Clientes",
-    href: "/dashboard/clients",
-    icon: Users,
-  },
-  {
-    label: "Tarefas",
-    href: "/dashboard/tasks",
-    icon: CheckSquare,
-  },
-  {
-    label: "Usuários",
-    href: "/dashboard/users",
-    icon: Users,
-    roles: ["OWNER", "COORDINATOR"],
-  },
-  {
-    label: "Metas",
-    href: "/dashboard/metas",
-    icon: Target,
-  },
-  {
-    label: "PIX",
-    href: "/dashboard/pix",
-    icon: DollarSign,
-  },
-  {
-    label: "Ranking",
-    href: "/dashboard/ranking",
-    icon: Trophy,
-    roles: ["OWNER", "COORDINATOR"],
-  },
-  {
-    label: "Gráficos",
-    href: "/dashboard/graficos",
-    icon: TrendingUp,
-  },
-  {
-    label: "Calculadora",
-    href: "/dashboard/calculadoras/investimento",
-    icon: Calculator,
-  },
-  {
-    label: "HUB de Dados",
-    href: "/dashboard/dash",
-    icon: Database,
-  },
-  {
-    label: "Perfil",
-    href: "/dashboard/profile",
-    icon: UserCircle,
+    label: "Ferramentas",
+    items: [
+      { label: "Calculadoras", href: "/dashboard/calculadoras/investimento", icon: Calculator },
+      { label: "HUB de Dados", href: "/dashboard/dash",    icon: Database },
+      { label: "Usuários",     href: "/dashboard/users",   icon: UserCog, roles: ["OWNER", "COORDINATOR"] as Role[] },
+    ],
   },
 ];
 
 export function Sidebar({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
 
-  const visibleItems = NAV_ITEMS.filter(
-    (item) => !item.roles || item.roles.includes(user.role)
-  );
+  function isActive(href: string) {
+    if (href === "/dashboard") return pathname === href;
+    return pathname.startsWith(href);
+  }
 
   return (
-    <aside className="w-60 h-full flex flex-col bg-[#0a100c] border-r border-[#1f2a23]">
+    <aside
+      className="w-[248px] h-full flex flex-col flex-shrink-0"
+      style={{ background: "#0a100c", borderRight: "1px solid #1f2a23" }}
+    >
       {/* Brand */}
-      <div className="h-14 flex items-center gap-3 px-4 border-b border-[#1f2a23]">
+      <div className="flex items-center gap-3 px-[22px] py-[18px]" style={{ borderBottom: "1px solid #1f2a23" }}>
         <div
-          className="w-7 h-7 rounded-[6px] flex-shrink-0 flex items-center justify-center"
-          style={{ background: "linear-gradient(135deg, #244a32, #15301f)", border: "1px solid #284d36" }}
+          className="w-11 h-11 rounded-[8px] flex items-center justify-center flex-shrink-0 text-sm font-bold"
+          style={{
+            background: "linear-gradient(135deg, #244a32, #15301f)",
+            border: "1px solid #284d36",
+            color: "#9be03a",
+            fontFamily: "var(--font-display)",
+            fontSize: "18px",
+            letterSpacing: ".06em",
+          }}
         >
-          <span className="text-[10px] font-bold text-[#9be03a] font-mono">S</span>
+          S
         </div>
-        <div className="flex flex-col leading-none">
+        <div className="flex flex-col gap-[3px]">
           <span
-            className="text-[#e6efe8] font-bold tracking-wide uppercase text-sm"
-            style={{ fontFamily: "var(--font-display)" }}
+            className="text-[#e6efe8] uppercase tracking-[.08em]"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "20px", lineHeight: 1 }}
           >
-            SHOGUN
+            Shogun
           </span>
-          <span className="text-[10px] text-[#4a5450] tracking-wider">Central · v2</span>
+          <span style={{ fontSize: "10px", letterSpacing: ".22em", color: "#4a5450", textTransform: "uppercase", fontWeight: 600 }}>
+            Central · v2
+          </span>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-3 px-2 overflow-y-auto space-y-0.5">
-        <p
-          className="px-3 pt-2 pb-1"
-          style={{ fontSize: "10px", letterSpacing: ".2em", textTransform: "uppercase", color: "#4a5450" }}
-        >
-          Navegação
-        </p>
-        {visibleItems.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== "/dashboard" && pathname.startsWith(item.href));
-
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-[18px]">
+        {NAV_GROUPS.map((group) => {
+          const visible = group.items.filter(
+            (item) => !("roles" in item) || !item.roles || item.roles.includes(user.role)
+          );
+          if (!visible.length) return null;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "relative flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors group overflow-hidden",
-                isActive
-                  ? "text-[#e6efe8] font-medium"
-                  : "text-[#a8b3aa] hover:bg-[#121b15] hover:text-[#e6efe8]"
-              )}
-              style={
-                isActive
-                  ? { background: "linear-gradient(90deg, rgba(125,193,40,0.14), rgba(125,193,40,0.04))" }
-                  : undefined
-              }
-            >
-              {isActive && (
-                <span
-                  className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full"
-                  style={{ background: "#7DC128" }}
-                />
-              )}
-              <item.icon
-                className={cn(
-                  "w-4 h-4 flex-shrink-0",
-                  isActive ? "text-[#7DC128]" : ""
-                )}
-              />
-              <span className="flex-1">{item.label}</span>
-            </Link>
+            <div key={group.label} className="px-[14px] mb-2">
+              <p style={{ fontSize: "10px", letterSpacing: ".2em", textTransform: "uppercase", color: "#4a5450", fontWeight: 700, padding: "0 10px 8px" }}>
+                {group.label}
+              </p>
+              {visible.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "relative flex items-center gap-3 rounded-[8px] mb-[2px] transition-colors",
+                      active ? "text-[#e6efe8]" : "text-[#a8b3aa] hover:text-[#e6efe8]"
+                    )}
+                    style={{
+                      padding: "10px 12px",
+                      fontSize: "13.5px",
+                      fontWeight: 500,
+                      background: active
+                        ? "linear-gradient(90deg, rgba(125,193,40,0.14), rgba(125,193,40,0.04))"
+                        : undefined,
+                    }}
+                    onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "#121b15"; }}
+                    onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = ""; }}
+                  >
+                    {active && (
+                      <span
+                        className="absolute rounded-r-[3px]"
+                        style={{ left: -14, top: 8, bottom: 8, width: 3, background: "#7DC128" }}
+                      />
+                    )}
+                    <item.icon
+                      className="flex-shrink-0"
+                      style={{ width: 20, height: 20, opacity: active ? 1 : 0.85, color: active ? "#7DC128" : "currentColor" }}
+                    />
+                    {item.label}
+                  </Link>
+                );
+              })}
+              <div style={{ height: 1, background: "#1f2a23", margin: "14px 0 4px" }} />
+            </div>
           );
         })}
+        {/* Perfil no fim */}
+        <div className="px-[14px]">
+          <Link
+            href="/dashboard/profile"
+            className={cn("relative flex items-center gap-3 rounded-[8px] transition-colors", isActive("/dashboard/profile") ? "text-[#e6efe8]" : "text-[#a8b3aa] hover:text-[#e6efe8]")}
+            style={{
+              padding: "10px 12px", fontSize: "13.5px", fontWeight: 500,
+              background: isActive("/dashboard/profile") ? "linear-gradient(90deg, rgba(125,193,40,0.14), rgba(125,193,40,0.04))" : undefined,
+            }}
+            onMouseEnter={(e) => { if (!isActive("/dashboard/profile")) e.currentTarget.style.background = "#121b15"; }}
+            onMouseLeave={(e) => { if (!isActive("/dashboard/profile")) e.currentTarget.style.background = ""; }}
+          >
+            {isActive("/dashboard/profile") && (
+              <span className="absolute rounded-r-[3px]" style={{ left: -14, top: 8, bottom: 8, width: 3, background: "#7DC128" }} />
+            )}
+            <UserCircle style={{ width: 20, height: 20, opacity: 0.85 }} />
+            Perfil
+          </Link>
+        </div>
       </nav>
 
-      {/* User section */}
-      <div className="border-t border-[#1f2a23] p-3">
-        <div className="flex items-center gap-3 px-2 py-2">
+      {/* Footer */}
+      <div className="p-[14px]" style={{ borderTop: "1px solid #1f2a23" }}>
+        <div className="flex items-center gap-[10px] px-2 py-2">
           <div
-            className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0"
-            style={{
-              background: "linear-gradient(135deg, #244a32, #15301f)",
-              border: "1px solid #284d36",
-            }}
+            className="flex-shrink-0 rounded-[8px] flex items-center justify-center font-bold"
+            style={{ width: 36, height: 36, background: "linear-gradient(135deg, #244a32, #15301f)", border: "1px solid #284d36", fontSize: "13px", color: "#9be03a" }}
           >
-            <span className="text-xs font-semibold text-[#9be03a]">
-              {initials(user.name)}
-            </span>
+            {initials(user.name)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-[#e6efe8] truncate">{user.name}</p>
-            <p className="text-[11px] text-[#4a5450] truncate">{user.role}</p>
+            <p className="text-[13px] font-semibold text-[#e6efe8] truncate" style={{ lineHeight: 1.2 }}>{user.name}</p>
+            <p className="text-[11px] text-[#6e7a70] truncate">{user.role}</p>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="p-1 rounded text-[#6e7a70] hover:text-[#7DC128] transition-colors"
+            className="transition-colors"
+            style={{ width: 28, height: 28, borderRadius: 6, display: "grid", placeItems: "center", color: "#6e7a70", border: "1px solid #1f2a23" }}
             title="Sair"
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#7DC128"; e.currentTarget.style.background = "#101a14"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "#6e7a70"; e.currentTarget.style.background = ""; }}
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut style={{ width: 14, height: 14 }} />
           </button>
         </div>
       </div>
