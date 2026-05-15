@@ -9,6 +9,7 @@ import {
   CheckSquare,
   LogOut,
   ChevronRight,
+  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/formatting";
@@ -49,6 +50,11 @@ const NAV_ITEMS: NavItem[] = [
     href: "/dashboard/users",
     icon: Users,
     roles: ["OWNER", "COORDINATOR"],
+  },
+  {
+    label: "Perfil",
+    href: "/dashboard/profile",
+    icon: UserCircle,
   },
 ];
 
