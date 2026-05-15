@@ -5,6 +5,7 @@ import { nowBRT } from "@/lib/date-utils";
 import { LayoutDashboard, AlertCircle, ArrowRight, Bell } from "lucide-react";
 import { formatBRTDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { ZeroSpendAlert } from "@/components/dashboard/zero-spend-alert";
 import type { Role, TaskPriority } from "@prisma/client";
 
 const PRIORITY_LABELS: Record<TaskPriority, string> = {
@@ -124,6 +125,9 @@ export default async function DashboardPage() {
           Bem-vindo, {session.user?.name}
         </p>
       </div>
+
+      {/* Zero Spend Alert — only for OWNER/COORDINATOR */}
+      {isPrivileged && <ZeroSpendAlert />}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (

@@ -11,6 +11,10 @@ import {
   ChevronRight,
   UserCircle,
   BarChart3,
+  Target,
+  DollarSign,
+  Trophy,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/formatting";
@@ -56,6 +60,27 @@ const NAV_ITEMS: NavItem[] = [
     href: "/dashboard/users",
     icon: Users,
     roles: ["OWNER", "COORDINATOR"],
+  },
+  {
+    label: "Metas",
+    href: "/dashboard/metas",
+    icon: Target,
+  },
+  {
+    label: "PIX",
+    href: "/dashboard/pix",
+    icon: DollarSign,
+  },
+  {
+    label: "Ranking",
+    href: "/dashboard/ranking",
+    icon: Trophy,
+    roles: ["OWNER", "COORDINATOR"],
+  },
+  {
+    label: "Gráficos",
+    href: "/dashboard/graficos",
+    icon: TrendingUp,
   },
   {
     label: "Perfil",
