@@ -26,10 +26,10 @@ const PRIORITY_LABELS: Record<TaskPriority, string> = {
 };
 
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
-  LOW: "bg-neutral-500/20 text-neutral-400 border-neutral-500/30",
-  MEDIUM: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  HIGH: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  URGENT: "bg-red-500/20 text-red-400 border-red-500/30",
+  LOW: "bg-[#182219] text-[#6e7a70] border-[#28342a]",
+  MEDIUM: "bg-[rgba(232,167,58,0.12)] text-[#e8a73a] border-[rgba(232,167,58,0.2)]",
+  HIGH: "bg-[rgba(216,90,74,0.12)] text-[#d85a4a] border-[rgba(216,90,74,0.2)]",
+  URGENT: "bg-[rgba(216,90,74,0.18)] text-[#d85a4a] border-[rgba(216,90,74,0.3)]",
 };
 
 export default async function DashboardPage() {
@@ -130,8 +130,13 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-neutral-400 text-sm mt-1">
+        <h1
+          className="font-bold uppercase text-[#e6efe8]"
+          style={{ fontFamily: "var(--font-display)", fontSize: "36px", letterSpacing: "0.02em" }}
+        >
+          Dashboard
+        </h1>
+        <p className="text-[#6e7a70] text-sm mt-1">
           Bem-vindo, {session.user?.name}
         </p>
       </div>
@@ -144,15 +149,21 @@ export default async function DashboardPage() {
           <Link
             key={stat.label}
             href={stat.href}
-            className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 hover:border-neutral-700 transition-colors"
+            className="border border-[#1f2a23] rounded-[10px] p-4 hover:border-[#28342a] transition-colors"
+            style={{ background: "linear-gradient(180deg, #141f18 0%, #111a14 100%)" }}
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-neutral-800 rounded-md">
-                <LayoutDashboard className="w-4 h-4 text-neutral-400" />
+              <div className="p-2 bg-[#182219] rounded-md">
+                <LayoutDashboard className="w-4 h-4 text-[#6e7a70]" />
               </div>
               <div>
-                <p className="text-xs text-neutral-500">{stat.label}</p>
-                <p className="text-xl font-semibold text-white">{stat.value}</p>
+                <p
+                  className="text-xs uppercase tracking-wider text-[#6e7a70]"
+                >{stat.label}</p>
+                <p
+                  className="text-xl font-semibold text-[#e6efe8]"
+                  style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}
+                >{stat.value}</p>
               </div>
             </div>
           </Link>
@@ -160,15 +171,15 @@ export default async function DashboardPage() {
       </div>
 
       {/* Minhas Tarefas Pendentes */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+      <div className="bg-[#141f18] border border-[#1f2a23] rounded-[10px] p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-400" />
+          <h2 className="text-sm font-semibold text-[#e6efe8] flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-[#e8a73a]" />
             Minhas Tarefas Pendentes
           </h2>
           <Link
             href="/dashboard/tasks"
-            className="flex items-center gap-1 text-xs text-neutral-500 hover:text-white transition-colors"
+            className="flex items-center gap-1 text-xs text-[#6e7a70] hover:text-[#e6efe8] transition-colors"
           >
             Ver todas
             <ArrowRight className="w-3 h-3" />
@@ -176,7 +187,7 @@ export default async function DashboardPage() {
         </div>
 
         {pendingTasks.length === 0 ? (
-          <p className="text-sm text-neutral-600 text-center py-4">
+          <p className="text-sm text-[#4a5450] text-center py-4">
             Nenhuma tarefa pendente atribuída a você
           </p>
         ) : (
@@ -191,7 +202,7 @@ export default async function DashboardPage() {
                 <Link
                   key={task.id}
                   href="/dashboard/tasks"
-                  className="flex items-center gap-3 p-3 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 hover:border-neutral-600 rounded-lg transition-all group"
+                  className="flex items-center gap-3 p-3 bg-[#182219] hover:bg-[#1f2a23] border border-[#1f2a23] hover:border-[#28342a] rounded-lg transition-all group"
                 >
                   <span
                     className={cn(
@@ -202,12 +213,12 @@ export default async function DashboardPage() {
                     {PRIORITY_LABELS[task.priority]}
                   </span>
 
-                  <span className="flex-1 text-sm text-white truncate group-hover:text-neutral-100">
+                  <span className="flex-1 text-sm text-[#e6efe8] truncate">
                     {task.title}
                   </span>
 
                   {task.client && (
-                    <span className="text-xs text-neutral-500 truncate max-w-[120px] flex-shrink-0">
+                    <span className="text-xs text-[#6e7a70] truncate max-w-[120px] flex-shrink-0">
                       {task.client.name}
                     </span>
                   )}
@@ -216,7 +227,7 @@ export default async function DashboardPage() {
                     <span
                       className={cn(
                         "text-xs flex-shrink-0",
-                        isOverdue ? "text-red-400 font-medium" : "text-neutral-500"
+                        isOverdue ? "text-[#d85a4a] font-medium" : "text-[#6e7a70]"
                       )}
                     >
                       {isOverdue ? "Vencida · " : ""}{formatBRTDate(task.dueDate)}
@@ -230,8 +241,8 @@ export default async function DashboardPage() {
       </div>
 
       {/* Acesso Rápido */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-        <h2 className="text-sm font-semibold text-white mb-4">Acesso Rápido</h2>
+      <div className="bg-[#141f18] border border-[#1f2a23] rounded-[10px] p-6">
+        <h2 className="text-sm font-bold text-[#e6efe8] mb-4">Acesso Rápido</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
             { label: "Overview", href: "/dashboard/overview", icon: BarChart3 },
@@ -243,12 +254,12 @@ export default async function DashboardPage() {
             <Link
               key={href}
               href={href}
-              className="flex flex-col items-center gap-2 p-4 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 hover:border-neutral-600 rounded-lg transition-all group text-center"
+              className="flex flex-col items-center gap-2 p-4 bg-[#182219] hover:bg-[#1f2a23] border border-[#1f2a23] hover:border-[#28342a] rounded-lg transition-all group text-center"
             >
-              <div className="p-2 bg-red-500/10 rounded-md group-hover:bg-red-500/20 transition-colors">
-                <Icon className="w-4 h-4 text-red-400" />
+              <div className="p-2 rounded-md transition-colors" style={{ background: "rgba(125,193,40,0.1)" }}>
+                <Icon className="w-4 h-4 text-[#7DC128]" />
               </div>
-              <span className="text-xs text-neutral-400 group-hover:text-white transition-colors font-medium">
+              <span className="text-xs text-[#a8b3aa] group-hover:text-[#e6efe8] transition-colors font-medium">
                 {label}
               </span>
             </Link>
@@ -258,36 +269,36 @@ export default async function DashboardPage() {
 
       {/* Alertas de Relatório */}
       {reportAlerts.length > 0 && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+        <div className="bg-[#141f18] border border-[#1f2a23] rounded-[10px] p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Bell className="w-4 h-4 text-yellow-400" />
+            <h2 className="text-sm font-bold text-[#e6efe8] flex items-center gap-2">
+              <Bell className="w-4 h-4 text-[#e8a73a]" />
               Alertas de Relatório
             </h2>
-            <span className="text-xs text-neutral-500">{reportAlerts.length} cliente(s)</span>
+            <span className="text-xs text-[#6e7a70]">{reportAlerts.length} cliente(s)</span>
           </div>
 
           <div className="space-y-2">
             {reportAlerts.map((alert) => (
               <div
                 key={alert.clientId}
-                className="flex items-center gap-3 p-3 bg-neutral-800 border border-neutral-700 rounded-lg"
+                className="flex items-center gap-3 p-3 bg-[#182219] border border-[#1f2a23] rounded-lg"
               >
-                <span className="flex-1 text-sm text-white truncate">{alert.clientName}</span>
+                <span className="flex-1 text-sm text-[#e6efe8] truncate">{alert.clientName}</span>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {alert.missingWeekly && (
-                    <span className="inline-flex items-center text-xs px-1.5 py-0.5 rounded border bg-yellow-500/10 text-yellow-400 border-yellow-500/20 font-medium">
+                    <span className="inline-flex items-center text-xs px-1.5 py-0.5 rounded border bg-[rgba(232,167,58,0.12)] text-[#e8a73a] border-[rgba(232,167,58,0.2)] font-medium">
                       Sem semanal
                     </span>
                   )}
                   {alert.missingMonthly && (
-                    <span className="inline-flex items-center text-xs px-1.5 py-0.5 rounded border bg-orange-500/10 text-orange-400 border-orange-500/20 font-medium">
+                    <span className="inline-flex items-center text-xs px-1.5 py-0.5 rounded border bg-[rgba(216,90,74,0.12)] text-[#d85a4a] border-[rgba(216,90,74,0.2)] font-medium">
                       Sem mensal
                     </span>
                   )}
                   <Link
                     href={`/dashboard/clients/${alert.clientId}`}
-                    className="flex items-center gap-1 text-xs text-neutral-500 hover:text-white transition-colors"
+                    className="flex items-center gap-1 text-xs text-[#6e7a70] hover:text-[#e6efe8] transition-colors"
                   >
                     Gerar
                     <ArrowRight className="w-3 h-3" />
