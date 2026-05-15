@@ -97,11 +97,11 @@ export async function POST(req: NextRequest) {
 
     // Save report to DB
     const rawData = {
-      current,
-      previous,
+      current: current as unknown as Record<string, number>,
+      previous: previous as unknown as Record<string, number>,
       period: { since, until },
       previousPeriod: { since: prevSince, until: prevUntil },
-    };
+    } as unknown as import("@prisma/client").Prisma.InputJsonValue;
 
     const report = await prisma.report.create({
       data: {

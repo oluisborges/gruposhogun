@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Trash2, Plus, Check } from "lucide-react";
+import { Copy, Trash2, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { GenerateReportModal } from "@/components/reports/generate-report-modal";
+// Button imported transitively via GenerateReportModal
 import { formatBRTDate } from "@/lib/date-utils";
-import type { Report, User, ReportType, Role } from "@prisma/client";
+import type { Report, User, ReportType, Role, MetaAccount } from "@prisma/client";
 
 type ReportWithUser = Report & { generatedBy: User };
 
@@ -13,6 +14,7 @@ interface ReportsSectionProps {
   clientId: string;
   reports: ReportWithUser[];
   userRole: Role;
+  metaAccounts?: Omit<MetaAccount, "tokenEncrypted">[];
 }
 
 const REPORT_TYPE_LABELS: Record<ReportType, string> = {
@@ -27,7 +29,7 @@ const REPORT_TYPE_VARIANTS: Record<ReportType, "default" | "secondary" | "warnin
   CUSTOM: "secondary",
 };
 
-export function ReportsSection({ clientId, reports: initialReports, userRole }: ReportsSectionProps) {
+export function ReportsSection({ clientId, reports: initialReports, userRole, metaAccounts = [] }: ReportsSectionProps) {
   const [reports, setReports] = useState<ReportWithUser[]>(initialReports);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export function ReportsSection({ clientId, reports: initialReports, userRole }: 
   async function handleDelete(reportId: string) {
     if (!confirm("Remover este relatório?")) return;
     setDeletingId(reportId);
-    const res = await fetch(`/api/clients/${clientId}/reports/${reportId}`, { method: "DELETE" });
+    const res = await fetch(`/api/reports/${reportId}`, { method: "DELETE" });
     if (res.ok) {
       setReports((prev) => prev.filter((r) => r.id !== reportId));
     }
@@ -54,15 +56,14 @@ export function ReportsSection({ clientId, reports: initialReports, userRole }: 
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-neutral-500">{reports.length} relatório(s) recentes</p>
-        <Button
-          size="sm"
-          disabled
-          className="bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed"
-          title="Disponível na Fase 5"
-        >
-          <Plus className="w-3.5 h-3.5 mr-1.5" />
-          Gerar Relatório
-        </Button>
+        <GenerateReportModal
+          clientId={clientId}
+          accounts={metaAccounts}
+          onGenerated={(report) => {
+            // Add to list (cast to include generatedBy placeholder)
+            setReports((prev) => [{ ...report, generatedBy: { name: "Você" } as User }, ...prev]);
+          }}
+        />
       </div>
 
       {reports.length === 0 ? (

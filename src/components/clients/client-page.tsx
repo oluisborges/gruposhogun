@@ -361,6 +361,7 @@ export function ClientPage({ client, userRole, userId, users = [] }: ClientPageP
               clientId={client.id}
               reports={client.reports}
               userRole={userRole}
+              metaAccounts={safeMetaAccounts}
             />
           </div>
         </section>

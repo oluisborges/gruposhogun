@@ -10,6 +10,7 @@ import {
   LogOut,
   ChevronRight,
   UserCircle,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/formatting";
@@ -34,6 +35,11 @@ const NAV_ITEMS: NavItem[] = [
     label: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    label: "Overview",
+    href: "/dashboard/overview",
+    icon: BarChart3,
   },
   {
     label: "Clientes",

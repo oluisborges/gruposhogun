@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth-guards";
 import { prisma } from "@/lib/prisma";
-import { LayoutDashboard, AlertCircle, ArrowRight } from "lucide-react";
+import { nowBRT } from "@/lib/date-utils";
+import { LayoutDashboard, AlertCircle, ArrowRight, Bell } from "lucide-react";
 import { formatBRTDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import type { Role, TaskPriority } from "@prisma/client";
@@ -43,6 +44,62 @@ export default async function DashboardPage() {
   });
 
   const isPrivileged = userRole === "OWNER" || userRole === "COORDINATOR";
+
+  // Report alerts
+  const now = nowBRT();
+  const dayOfWeek = now.getDay();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - dayOfWeek);
+  weekStart.setHours(20, 0, 0, 0);
+  if (now < weekStart) weekStart.setDate(weekStart.getDate() - 7);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  let alertClientFilter: { id: { in: string[] } } | undefined;
+  if (!isPrivileged) {
+    const managed = await prisma.clientManager.findMany({
+      where: { userId },
+      select: { clientId: true },
+    });
+    alertClientFilter = { id: { in: managed.map((m) => m.clientId) } };
+  }
+
+  const alertClients = await prisma.client.findMany({
+    where: { active: true, ...alertClientFilter },
+    select: {
+      id: true,
+      name: true,
+      reports: {
+        where: { createdAt: { gte: weekStart, lte: weekEnd } },
+        select: { id: true },
+      },
+    },
+  });
+
+  const alertClientIds = alertClients.map((c) => c.id);
+  const monthlyReportClientIds = await prisma.report
+    .findMany({
+      where: {
+        clientId: { in: alertClientIds },
+        createdAt: { gte: monthStart, lte: monthEnd },
+      },
+      select: { clientId: true },
+    })
+    .then((rs) => new Set(rs.map((r) => r.clientId)));
+
+  const reportAlerts = alertClients
+    .map((client) => ({
+      clientId: client.id,
+      clientName: client.name,
+      missingWeekly: client.reports.length === 0,
+      missingMonthly: !monthlyReportClientIds.has(client.id),
+    }))
+    .filter((a) => a.missingWeekly || a.missingMonthly)
+    .slice(0, 10);
 
   // Summary counts
   const [clientCount, taskCount] = await Promise.all([
@@ -157,6 +214,49 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Alertas de Relatório */}
+      {reportAlerts.length > 0 && (
+        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+              <Bell className="w-4 h-4 text-yellow-400" />
+              Alertas de Relatório
+            </h2>
+            <span className="text-xs text-neutral-500">{reportAlerts.length} cliente(s)</span>
+          </div>
+
+          <div className="space-y-2">
+            {reportAlerts.map((alert) => (
+              <div
+                key={alert.clientId}
+                className="flex items-center gap-3 p-3 bg-neutral-800 border border-neutral-700 rounded-lg"
+              >
+                <span className="flex-1 text-sm text-white truncate">{alert.clientName}</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {alert.missingWeekly && (
+                    <span className="inline-flex items-center text-xs px-1.5 py-0.5 rounded border bg-yellow-500/10 text-yellow-400 border-yellow-500/20 font-medium">
+                      Sem semanal
+                    </span>
+                  )}
+                  {alert.missingMonthly && (
+                    <span className="inline-flex items-center text-xs px-1.5 py-0.5 rounded border bg-orange-500/10 text-orange-400 border-orange-500/20 font-medium">
+                      Sem mensal
+                    </span>
+                  )}
+                  <Link
+                    href={`/dashboard/clients/${alert.clientId}`}
+                    className="flex items-center gap-1 text-xs text-neutral-500 hover:text-white transition-colors"
+                  >
+                    Gerar
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
