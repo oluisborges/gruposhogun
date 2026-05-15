@@ -4,6 +4,11 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@prisma/client";
 
+// Validate TOKEN_ENCRYPTION_KEY entropy on server startup
+if (process.env.TOKEN_ENCRYPTION_KEY && process.env.TOKEN_ENCRYPTION_KEY.length < 32) {
+  throw new Error("TOKEN_ENCRYPTION_KEY must be at least 32 characters");
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
   pages: {

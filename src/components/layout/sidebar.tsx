@@ -15,6 +15,8 @@ import {
   DollarSign,
   Trophy,
   TrendingUp,
+  Calculator,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/formatting";
@@ -81,6 +83,16 @@ const NAV_ITEMS: NavItem[] = [
     label: "Gráficos",
     href: "/dashboard/graficos",
     icon: TrendingUp,
+  },
+  {
+    label: "Calculadora",
+    href: "/dashboard/calculadoras/investimento",
+    icon: Calculator,
+  },
+  {
+    label: "HUB de Dados",
+    href: "/dashboard/dash",
+    icon: Database,
   },
   {
     label: "Perfil",

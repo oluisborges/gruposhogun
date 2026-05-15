@@ -2,7 +2,17 @@ import Link from "next/link";
 import { requireAuth } from "@/lib/auth-guards";
 import { prisma } from "@/lib/prisma";
 import { nowBRT } from "@/lib/date-utils";
-import { LayoutDashboard, AlertCircle, ArrowRight, Bell } from "lucide-react";
+import {
+  LayoutDashboard,
+  AlertCircle,
+  ArrowRight,
+  Bell,
+  BarChart3,
+  Target,
+  DollarSign,
+  Calculator,
+  Database,
+} from "lucide-react";
 import { formatBRTDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { ZeroSpendAlert } from "@/components/dashboard/zero-spend-alert";
@@ -217,6 +227,33 @@ export default async function DashboardPage() {
             })}
           </div>
         )}
+      </div>
+
+      {/* Acesso Rápido */}
+      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+        <h2 className="text-sm font-semibold text-white mb-4">Acesso Rápido</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[
+            { label: "Overview", href: "/dashboard/overview", icon: BarChart3 },
+            { label: "Metas", href: "/dashboard/metas", icon: Target },
+            { label: "PIX", href: "/dashboard/pix", icon: DollarSign },
+            { label: "Calculadora", href: "/dashboard/calculadoras/investimento", icon: Calculator },
+            { label: "HUB de Dados", href: "/dashboard/dash", icon: Database },
+          ].map(({ label, href, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex flex-col items-center gap-2 p-4 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 hover:border-neutral-600 rounded-lg transition-all group text-center"
+            >
+              <div className="p-2 bg-red-500/10 rounded-md group-hover:bg-red-500/20 transition-colors">
+                <Icon className="w-4 h-4 text-red-400" />
+              </div>
+              <span className="text-xs text-neutral-400 group-hover:text-white transition-colors font-medium">
+                {label}
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Alertas de Relatório */}
