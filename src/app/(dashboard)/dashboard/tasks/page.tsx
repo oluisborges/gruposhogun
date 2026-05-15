@@ -47,7 +47,7 @@ export default async function TasksPage() {
     name: session.user.name as string,
     email: session.user.email as string,
     role: userRole,
-    tags: (session.user as unknown as { tags?: string[] }).tags ?? [],
+    tags: (session.user as unknown as { tags?: import("@prisma/client").ClientTag[] }).tags ?? [],
     active: true,
   };
 

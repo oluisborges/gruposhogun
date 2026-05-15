@@ -25,10 +25,12 @@ import { MetaAccountsSection } from "@/components/clients/meta-accounts-section"
 import { ManagersSection } from "@/components/clients/managers-section";
 import { AttachmentsSection } from "@/components/clients/attachments-section";
 import { ReportsSection } from "@/components/clients/reports-section";
+import { ClientTasksSection } from "@/components/clients/client-tasks-section";
 import { formatBRTDate } from "@/lib/date-utils";
 import { formatBRL } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import type { Role, ClientTag, MetaAccount, Report, User as PrismaUser, ClientSection, ClientAttachment, Task, TaskLabel, ClientManager, Prisma } from "@prisma/client";
+import type { UserSummary } from "@/types";
 
 const TAG_COLORS: Record<ClientTag, string> = {
   MARMITARIA: "bg-orange-500/10 text-orange-400 border-orange-500/20",
@@ -68,6 +70,7 @@ interface ClientPageProps {
   client: ClientData;
   userRole: Role;
   userId: string;
+  users?: UserSummary[];
 }
 
 const NAV_SECTIONS = [
@@ -78,10 +81,11 @@ const NAV_SECTIONS = [
   { id: "meta-accounts", label: "Meta Ads" },
   { id: "managers", label: "Gestores" },
   { id: "attachments", label: "Anexos" },
+  { id: "tasks", label: "Tarefas" },
   { id: "reports", label: "Relatórios" },
 ];
 
-export function ClientPage({ client, userRole, userId }: ClientPageProps) {
+export function ClientPage({ client, userRole, userId, users = [] }: ClientPageProps) {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState("overview");
   const [editOpen, setEditOpen] = useState(false);
@@ -327,6 +331,26 @@ export function ClientPage({ client, userRole, userId }: ClientPageProps) {
             attachments={client.attachments}
             userRole={userRole}
           />
+        </section>
+
+        {/* Tasks */}
+        <section id="tasks" className="scroll-mt-4">
+          <SectionHeader title="Tarefas" />
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+            <ClientTasksSection
+              clientId={client.id}
+              clientName={client.name}
+              currentUser={{
+                id: userId,
+                name: client.managers.find((m) => m.userId === userId)?.user.name ?? "Usuário",
+                email: client.managers.find((m) => m.userId === userId)?.user.email ?? "",
+                role: userRole,
+                tags: [] as ClientTag[],
+                active: true,
+              }}
+              users={users}
+            />
+          </div>
         </section>
 
         {/* Reports */}

@@ -41,11 +41,18 @@ export default async function ClientDetailPage({ params }: PageProps) {
     if (!manages) redirect("/dashboard/clients");
   }
 
+  const users = await prisma.user.findMany({
+    where: { active: true },
+    select: { id: true, name: true, email: true, role: true, tags: true, active: true },
+    orderBy: { name: "asc" },
+  });
+
   return (
     <ClientPage
       client={client}
       userRole={userRole}
       userId={userId}
+      users={users}
     />
   );
 }
