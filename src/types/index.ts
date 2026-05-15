@@ -7,6 +7,7 @@ import type {
   ClientAttachment,
   Report,
   Task,
+  TaskComment,
   TaskLabel,
   Role,
 } from "@prisma/client";
@@ -28,5 +29,13 @@ export type ClientListItem = Client & {
 };
 
 export type UserSummary = Pick<User, "id" | "name" | "email" | "role" | "tags" | "active">;
+
+export type TaskWithRelations = Task & {
+  client: { id: string; name: string } | null;
+  assignee: { id: string; name: string; email: string } | null;
+  createdBy: { id: string; name: string; email: string };
+  comments: (TaskComment & { user: { id: string; name: string } })[];
+  labels: TaskLabel[];
+};
 
 export type { Role };
