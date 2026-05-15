@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { X, Trash2, Plus, Send } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { initials } from "@/lib/formatting";
 import { formatBRTDate, formatBRTDateTime } from "@/lib/date-utils";
 import { useToast } from "@/hooks/use-toast";
@@ -23,13 +22,6 @@ const PRIORITY_OPTIONS: { value: TaskPriority; label: string }[] = [
   { value: "URGENT", label: "Urgente" },
 ];
 
-const PRIORITY_COLORS: Record<TaskPriority, string> = {
-  LOW: "bg-neutral-500/20 text-neutral-400 border-neutral-500/30",
-  MEDIUM: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  HIGH: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  URGENT: "bg-red-500/20 text-red-400 border-red-500/30",
-};
-
 const PRESET_COLORS = [
   "#6366f1", "#8b5cf6", "#ec4899", "#ef4444",
   "#f97316", "#eab308", "#22c55e", "#06b6d4",
@@ -46,6 +38,29 @@ interface TaskDetailPanelProps {
   onUpdated: (task: TaskWithRelations) => void;
   onDeleted: (taskId: string) => void;
 }
+
+const fieldLabelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: ".1em",
+  color: "#6e7a70",
+  marginBottom: 4,
+};
+
+const selectStyle: React.CSSProperties = {
+  width: "100%",
+  height: 32,
+  fontSize: 12,
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  color: "#a8b3aa",
+  borderRadius: 6,
+  padding: "0 8px",
+  outline: "none",
+  cursor: "pointer",
+  boxSizing: "border-box",
+};
 
 export function TaskDetailPanel({
   task,
@@ -191,131 +206,126 @@ export function TaskDetailPanel({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} />
+      <div style={{ position: "fixed", inset: 0, zIndex: 40, background: "rgba(0,0,0,0.4)" }} onClick={onClose} />
 
       {/* Panel */}
-      <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[480px] bg-neutral-900 border-l border-neutral-800 flex flex-col shadow-2xl">
+      <div style={{
+        position: "fixed",
+        insetBlock: 0,
+        right: 0,
+        zIndex: 50,
+        width: "100%",
+        maxWidth: 480,
+        background: "#141f18",
+        borderLeft: "1px solid #1f2a23",
+        display: "flex",
+        flexDirection: "column",
+        boxShadow: "-8px 0 32px rgba(0,0,0,0.4)",
+      }}>
         {/* Header */}
-        <div className="flex items-start gap-3 px-5 py-4 border-b border-neutral-800 flex-shrink-0">
-          <div className="flex-1 min-w-0">
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "16px 20px", borderBottom: "1px solid #1f2a23", flexShrink: 0 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <input
               ref={titleRef}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={handleTitleBlur}
-              className="w-full bg-transparent text-base font-semibold text-white focus:outline-none border-b border-transparent focus:border-neutral-600 pb-0.5"
+              style={{
+                width: "100%",
+                background: "transparent",
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#e6efe8",
+                border: "none",
+                borderBottom: "1px solid transparent",
+                outline: "none",
+                paddingBottom: 2,
+                boxSizing: "border-box",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "#28342a")}
+              onBlurCapture={(e) => (e.currentTarget.style.borderBottomColor = "transparent")}
             />
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {isPrivileged && (
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="text-neutral-500 hover:text-red-400 transition-colors disabled:opacity-50"
                 title="Deletar tarefa"
+                style={{ padding: 6, background: "transparent", border: "none", color: "#4a5450", cursor: deleting ? "not-allowed" : "pointer", opacity: deleting ? 0.5 : 1, borderRadius: 6 }}
+                onMouseOver={(e) => (e.currentTarget.style.color = "#d85a4a")}
+                onMouseOut={(e) => (e.currentTarget.style.color = "#4a5450")}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 style={{ width: 15, height: 15 }} />
               </button>
             )}
-            <button onClick={onClose} className="text-neutral-500 hover:text-white transition-colors">
-              <X className="w-4 h-4" />
+            <button onClick={onClose} style={{ padding: 6, background: "transparent", border: "none", color: "#6e7a70", cursor: "pointer", borderRadius: 6 }}>
+              <X style={{ width: 16, height: 16 }} />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div style={{ flex: 1, overflowY: "auto" }}>
           {/* Properties */}
-          <div className="px-5 py-4 border-b border-neutral-800">
-            <div className="grid grid-cols-2 gap-3">
+          <div style={{ padding: "16px 20px", borderBottom: "1px solid #1f2a23" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
-                <p className="text-xs text-neutral-500 mb-1">Status</p>
-                <select
-                  value={task.status}
-                  onChange={(e) => handleFieldChange("status", e.target.value)}
-                  className="w-full h-8 text-sm bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none"
-                >
-                  {STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
+                <p style={fieldLabelStyle}>Status</p>
+                <select value={task.status} onChange={(e) => handleFieldChange("status", e.target.value)} style={selectStyle}>
+                  {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
-
               <div>
-                <p className="text-xs text-neutral-500 mb-1">Prioridade</p>
-                <select
-                  value={task.priority}
-                  onChange={(e) => handleFieldChange("priority", e.target.value)}
-                  className={cn(
-                    "w-full h-8 text-sm bg-neutral-800 border rounded-md px-2 focus:outline-none",
-                    PRIORITY_COLORS[task.priority]
-                  )}
-                >
-                  {PRIORITY_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
+                <p style={fieldLabelStyle}>Prioridade</p>
+                <select value={task.priority} onChange={(e) => handleFieldChange("priority", e.target.value)} style={selectStyle}>
+                  {PRIORITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
-
               <div>
-                <p className="text-xs text-neutral-500 mb-1">Prazo</p>
+                <p style={fieldLabelStyle}>Prazo</p>
                 <input
                   type="date"
                   defaultValue={task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : ""}
                   onChange={(e) => handleFieldChange("dueDate", e.target.value || null)}
-                  className={cn(
-                    "w-full h-8 text-sm bg-neutral-800 border border-neutral-700 rounded-md px-2 focus:outline-none",
-                    isOverdue ? "text-red-400 border-red-500/40" : "text-neutral-300"
-                  )}
+                  style={{
+                    ...selectStyle,
+                    color: isOverdue ? "#d85a4a" : "#a8b3aa",
+                    borderColor: isOverdue ? "rgba(216,90,74,0.3)" : "#1f2a23",
+                  }}
                 />
               </div>
-
               <div>
-                <p className="text-xs text-neutral-500 mb-1">Cliente</p>
-                <select
-                  value={task.clientId ?? ""}
-                  onChange={(e) => handleFieldChange("clientId", e.target.value || null)}
-                  className="w-full h-8 text-sm bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none"
-                >
+                <p style={fieldLabelStyle}>Cliente</p>
+                <select value={task.clientId ?? ""} onChange={(e) => handleFieldChange("clientId", e.target.value || null)} style={selectStyle}>
                   <option value="">Sem cliente</option>
-                  {clients.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
+                  {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
-
               {isPrivileged && (
-                <div className="col-span-2">
-                  <p className="text-xs text-neutral-500 mb-1">Responsável</p>
-                  <select
-                    value={task.assigneeId ?? ""}
-                    onChange={(e) => handleFieldChange("assigneeId", e.target.value || null)}
-                    className="w-full h-8 text-sm bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none"
-                  >
+                <div style={{ gridColumn: "span 2" }}>
+                  <p style={fieldLabelStyle}>Responsável</p>
+                  <select value={task.assigneeId ?? ""} onChange={(e) => handleFieldChange("assigneeId", e.target.value || null)} style={selectStyle}>
                     <option value="">Sem responsável</option>
-                    {users.map((u) => (
-                      <option key={u.id} value={u.id}>{u.name}</option>
-                    ))}
+                    {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
                   </select>
                 </div>
               )}
-
               {task.createdBy && (
                 <div>
-                  <p className="text-xs text-neutral-500 mb-1">Criado por</p>
-                  <p className="text-sm text-neutral-400">{task.createdBy.name}</p>
+                  <p style={fieldLabelStyle}>Criado por</p>
+                  <p style={{ fontSize: 13, color: "#a8b3aa" }}>{task.createdBy.name}</p>
                 </div>
               )}
-
               <div>
-                <p className="text-xs text-neutral-500 mb-1">Criado em</p>
-                <p className="text-sm text-neutral-400">{formatBRTDate(task.createdAt)}</p>
+                <p style={fieldLabelStyle}>Criado em</p>
+                <p style={{ fontSize: 13, color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>{formatBRTDate(task.createdAt)}</p>
               </div>
             </div>
           </div>
 
           {/* Description */}
-          <div className="px-5 py-4 border-b border-neutral-800">
-            <p className="text-xs text-neutral-500 mb-2">Descrição</p>
+          <div style={{ padding: "16px 20px", borderBottom: "1px solid #1f2a23" }}>
+            <p style={fieldLabelStyle}>Descrição</p>
             <textarea
               ref={descRef}
               value={description}
@@ -323,90 +333,149 @@ export function TaskDetailPanel({
               onBlur={handleDescriptionBlur}
               placeholder="Adicionar descrição..."
               rows={4}
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-300 placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 resize-none"
+              style={{
+                width: "100%",
+                background: "#0f1813",
+                border: "1px solid #1f2a23",
+                borderRadius: 8,
+                color: "#a8b3aa",
+                fontSize: 13,
+                padding: "9px 14px",
+                outline: "none",
+                resize: "none",
+                boxSizing: "border-box",
+                fontFamily: "inherit",
+              }}
             />
           </div>
 
           {/* Labels */}
-          <div className="px-5 py-4 border-b border-neutral-800">
-            <p className="text-xs text-neutral-500 mb-2">Etiquetas</p>
-            <div className="flex flex-wrap gap-1 mb-2">
+          <div style={{ padding: "16px 20px", borderBottom: "1px solid #1f2a23" }}>
+            <p style={fieldLabelStyle}>Etiquetas</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
               {labels.map((label) => (
                 <span
                   key={label.id}
-                  className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded"
-                  style={{ backgroundColor: label.color + "33", border: `1px solid ${label.color}55`, color: label.color }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontSize: 10.5,
+                    padding: "3px 7px",
+                    borderRadius: 20,
+                    backgroundColor: label.color + "33",
+                    border: `1px solid ${label.color}55`,
+                    color: label.color,
+                    fontWeight: 700,
+                  }}
                 >
                   {label.name}
-                  <button onClick={() => removeLabel(label.id)} className="hover:opacity-70">
-                    <X className="w-2.5 h-2.5" />
+                  <button onClick={() => removeLabel(label.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit", opacity: 0.8, lineHeight: 1 }}>
+                    <X style={{ width: 10, height: 10 }} />
                   </button>
                 </span>
               ))}
             </div>
-            <div className="flex gap-1">
+            <div style={{ display: "flex", gap: 4 }}>
               <input
                 value={newLabelName}
                 onChange={(e) => setNewLabelName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addLabel())}
                 placeholder="Nova etiqueta"
-                className="flex-1 h-7 text-xs bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-md px-2 placeholder:text-neutral-600 focus:outline-none"
+                style={{
+                  flex: 1,
+                  height: 28,
+                  fontSize: 12,
+                  background: "#0f1813",
+                  border: "1px solid #1f2a23",
+                  color: "#a8b3aa",
+                  borderRadius: 6,
+                  padding: "0 8px",
+                  outline: "none",
+                }}
               />
-              <button
-                onClick={addLabel}
-                className="h-7 px-2 bg-neutral-700 hover:bg-neutral-600 text-white rounded-md transition-colors"
-              >
-                <Plus className="w-3 h-3" />
+              <button onClick={addLabel} style={{ height: 28, width: 28, display: "flex", alignItems: "center", justifyContent: "center", background: "#182219", border: "1px solid #1f2a23", color: "#7DC128", borderRadius: 6, cursor: "pointer" }}>
+                <Plus style={{ width: 12, height: 12 }} />
               </button>
             </div>
-            <div className="flex gap-1 mt-1.5 flex-wrap">
+            <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
               {PRESET_COLORS.map((c) => (
                 <button
                   key={c}
                   onClick={() => setNewLabelColor(c)}
-                  className={cn(
-                    "w-4 h-4 rounded-full transition-transform",
-                    newLabelColor === c ? "scale-125 ring-2 ring-white ring-offset-1 ring-offset-neutral-800" : "hover:scale-110"
-                  )}
-                  style={{ backgroundColor: c }}
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: "50%",
+                    backgroundColor: c,
+                    border: newLabelColor === c ? "2px solid #fff" : "2px solid transparent",
+                    cursor: "pointer",
+                    transform: newLabelColor === c ? "scale(1.2)" : "scale(1)",
+                    transition: "transform .1s",
+                    padding: 0,
+                  }}
                 />
               ))}
             </div>
           </div>
 
           {/* Comments */}
-          <div className="px-5 py-4">
-            <p className="text-xs text-neutral-500 mb-3">
+          <div style={{ padding: "16px 20px" }}>
+            <p style={{ ...fieldLabelStyle, marginBottom: 12 }}>
               Comentários ({comments.length})
             </p>
 
-            <div className="space-y-3 mb-4">
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
               {comments.map((comment) => {
-                const canDeleteComment =
-                  isPrivileged || comment.userId === currentUser.id;
+                const canDeleteComment = isPrivileged || comment.userId === currentUser.id;
                 return (
-                  <div key={comment.id} className="flex gap-2 group">
-                    <div className="w-7 h-7 rounded-full bg-neutral-700 flex items-center justify-center text-xs font-semibold text-white flex-shrink-0">
+                  <div key={comment.id} style={{ display: "flex", gap: 10 }}
+                    onMouseEnter={(e) => {
+                      const btn = e.currentTarget.querySelector<HTMLButtonElement>(".delete-btn");
+                      if (btn) btn.style.opacity = "1";
+                    }}
+                    onMouseLeave={(e) => {
+                      const btn = e.currentTarget.querySelector<HTMLButtonElement>(".delete-btn");
+                      if (btn) btn.style.opacity = "0";
+                    }}
+                  >
+                    <div style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 8,
+                      background: "linear-gradient(135deg, #244a32, #15301f)",
+                      border: "1px solid #284d36",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "#9be03a",
+                      flexShrink: 0,
+                    }}>
                       {initials(comment.user.name)}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs font-medium text-neutral-300">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#a8b3aa" }}>
                           {comment.user.name}
                         </span>
-                        <span className="text-xs text-neutral-600">
+                        <span style={{ fontSize: 11, color: "#4a5450", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
                           {formatBRTDateTime(comment.createdAt)}
                         </span>
                         {canDeleteComment && (
                           <button
+                            className="delete-btn"
                             onClick={() => handleDeleteComment(comment.id)}
-                            className="ml-auto opacity-0 group-hover:opacity-100 text-neutral-600 hover:text-red-400 transition-all"
+                            style={{ marginLeft: "auto", opacity: 0, background: "none", border: "none", cursor: "pointer", color: "#4a5450", transition: "all .15s", padding: 2, borderRadius: 4 }}
+                            onMouseOver={(e) => (e.currentTarget.style.color = "#d85a4a")}
+                            onMouseOut={(e) => (e.currentTarget.style.color = "#4a5450")}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 style={{ width: 12, height: 12 }} />
                           </button>
                         )}
                       </div>
-                      <p className="text-sm text-neutral-400 whitespace-pre-wrap break-words">
+                      <p style={{ fontSize: 13, color: "#a8b3aa", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                         {comment.content}
                       </p>
                     </div>
@@ -415,18 +484,32 @@ export function TaskDetailPanel({
               })}
 
               {comments.length === 0 && (
-                <p className="text-xs text-neutral-600 text-center py-4">
+                <p style={{ fontSize: 12, color: "#4a5450", textAlign: "center", padding: "16px 0" }}>
                   Nenhum comentário ainda
                 </p>
               )}
             </div>
 
             {/* Comment input */}
-            <div className="flex gap-2">
-              <div className="w-7 h-7 rounded-full bg-neutral-700 flex items-center justify-center text-xs font-semibold text-white flex-shrink-0">
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                background: "linear-gradient(135deg, #244a32, #15301f)",
+                border: "1px solid #284d36",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#9be03a",
+                flexShrink: 0,
+                marginTop: 2,
+              }}>
                 {initials(currentUser.name)}
               </div>
-              <div className="flex-1 flex gap-1.5">
+              <div style={{ flex: 1, display: "flex", gap: 6 }}>
                 <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
@@ -436,16 +519,43 @@ export function TaskDetailPanel({
                       handleSendComment();
                     }
                   }}
-                  placeholder="Adicionar comentário... (Ctrl+Enter para enviar)"
+                  placeholder="Adicionar comentário... (Ctrl+Enter)"
                   rows={2}
-                  className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-300 placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 resize-none"
+                  style={{
+                    flex: 1,
+                    background: "#0f1813",
+                    border: "1px solid #1f2a23",
+                    borderRadius: 8,
+                    color: "#a8b3aa",
+                    fontSize: 13,
+                    padding: "8px 12px",
+                    outline: "none",
+                    resize: "none",
+                    fontFamily: "inherit",
+                    boxSizing: "border-box",
+                  }}
                 />
                 <button
                   onClick={handleSendComment}
                   disabled={sendingComment || !newComment.trim()}
-                  className="self-end h-8 w-8 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                  style={{
+                    alignSelf: "flex-end",
+                    height: 32,
+                    width: 32,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#7DC128",
+                    border: "none",
+                    color: "#0a1408",
+                    borderRadius: 8,
+                    cursor: sendingComment || !newComment.trim() ? "not-allowed" : "pointer",
+                    opacity: sendingComment || !newComment.trim() ? 0.5 : 1,
+                    transition: "opacity .15s",
+                    flexShrink: 0,
+                  }}
                 >
-                  <Send className="w-3.5 h-3.5" />
+                  <Send style={{ width: 13, height: 13 }} />
                 </button>
               </div>
             </div>

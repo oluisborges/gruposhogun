@@ -2,10 +2,6 @@
 
 import { useState } from "react";
 import { Plus, Trash2, ExternalLink, FileText, Link as LinkIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import type { ClientAttachment, Role } from "@prisma/client";
 
 interface AttachmentsSectionProps {
@@ -13,6 +9,28 @@ interface AttachmentsSectionProps {
   attachments: ClientAttachment[];
   userRole: Role;
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  borderRadius: 8,
+  color: "#e6efe8",
+  fontSize: 13,
+  padding: "9px 14px",
+  outline: "none",
+  boxSizing: "border-box",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: ".1em",
+  color: "#6e7a70",
+  marginBottom: 6,
+};
 
 export function AttachmentsSection({ clientId, attachments: initialAttachments, userRole }: AttachmentsSectionProps) {
   const [attachments, setAttachments] = useState<ClientAttachment[]>(initialAttachments);
@@ -31,11 +49,7 @@ export function AttachmentsSection({ clientId, attachments: initialAttachments, 
     const res = await fetch(`/api/clients/${clientId}/attachments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: formName.trim(),
-        url: formUrl.trim() || "",
-        type: formType,
-      }),
+      body: JSON.stringify({ name: formName.trim(), url: formUrl.trim() || "", type: formType }),
     });
     if (res.ok) {
       const created = await res.json() as ClientAttachment;
@@ -57,35 +71,49 @@ export function AttachmentsSection({ clientId, attachments: initialAttachments, 
   }
 
   return (
-    <div className="space-y-3">
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {attachments.length === 0 && !showForm && (
-        <p className="text-sm text-neutral-500 italic">Nenhum anexo cadastrado</p>
+        <p style={{ fontSize: 13, color: "#4a5450", fontStyle: "italic" }}>Nenhum anexo cadastrado</p>
       )}
 
-      <div className="space-y-2">
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {attachments.map((att) => (
           <div
             key={att.id}
-            className="flex items-center gap-3 bg-neutral-800/50 border border-neutral-700/50 rounded-lg px-3 py-2.5"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              background: "#141f18",
+              border: "1px solid #1f2a23",
+              borderRadius: 10,
+              padding: "10px 14px",
+            }}
           >
-            <div className="flex-shrink-0 text-neutral-500">
+            <div style={{ flexShrink: 0, color: att.type === "link" ? "#7DC128" : "#a8b3aa" }}>
               {att.type === "link" ? (
-                <LinkIcon className="w-4 h-4" />
+                <LinkIcon style={{ width: 15, height: 15 }} />
               ) : (
-                <FileText className="w-4 h-4" />
+                <FileText style={{ width: 15, height: 15 }} />
               )}
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-white truncate">{att.name}</span>
-                <span
-                  className={cn(
-                    "inline-flex items-center rounded border px-1.5 py-0.5 text-xs font-medium",
-                    att.type === "link"
-                      ? "border-blue-500/30 text-blue-400 bg-blue-500/10"
-                      : "border-neutral-600 text-neutral-400 bg-neutral-800"
-                  )}
-                >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#e6efe8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {att.name}
+                </span>
+                <span style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "2px 6px",
+                  borderRadius: 20,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: ".06em",
+                  textTransform: "uppercase",
+                  background: att.type === "link" ? "rgba(125,193,40,0.1)" : "#182219",
+                  color: att.type === "link" ? "#7DC128" : "#6e7a70",
+                }}>
                   {att.type === "link" ? "Link" : "Nota"}
                 </span>
               </div>
@@ -94,22 +122,35 @@ export function AttachmentsSection({ clientId, attachments: initialAttachments, 
                   href={att.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-0.5 truncate"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#7DC128", marginTop: 2, textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}
                 >
-                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{att.url}</span>
+                  <ExternalLink style={{ width: 11, height: 11, flexShrink: 0 }} />
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{att.url}</span>
                 </a>
               ) : att.url ? (
-                <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">{att.url}</p>
+                <p style={{ fontSize: 11, color: "#6e7a70", marginTop: 2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                  {att.url}
+                </p>
               ) : null}
             </div>
             {canEdit && (
               <button
                 onClick={() => handleDelete(att.id)}
                 disabled={deletingId === att.id}
-                className="p-1 rounded text-neutral-600 hover:text-red-400 transition-colors disabled:opacity-50 flex-shrink-0"
+                style={{
+                  padding: 4,
+                  borderRadius: 4,
+                  background: "transparent",
+                  border: "none",
+                  cursor: deletingId === att.id ? "not-allowed" : "pointer",
+                  color: "#4a5450",
+                  opacity: deletingId === att.id ? 0.5 : 1,
+                  flexShrink: 0,
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.color = "#d85a4a")}
+                onMouseOut={(e) => (e.currentTarget.style.color = "#4a5450")}
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 style={{ width: 13, height: 13 }} />
               </button>
             )}
           </div>
@@ -118,93 +159,103 @@ export function AttachmentsSection({ clientId, attachments: initialAttachments, 
 
       {canEdit && (
         showForm ? (
-          <div className="bg-neutral-800/50 border border-red-500/30 rounded-lg p-4 space-y-3">
-            <h4 className="text-sm font-medium text-neutral-300">Novo Anexo</h4>
-            <div className="space-y-1">
-              <Label className="text-xs text-neutral-400">Nome *</Label>
-              <Input
-                autoFocus
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                placeholder="Nome do anexo"
-                className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-600 text-sm"
-              />
+          <div style={{ background: "#141f18", border: "1px solid rgba(125,193,40,0.2)", borderRadius: 10, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "#e6efe8" }}>Novo Anexo</p>
+            <div>
+              <label style={labelStyle}>Nome *</label>
+              <input autoFocus value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Nome do anexo" style={inputStyle} />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-neutral-400">Tipo</Label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFormType("link")}
-                  className={cn(
-                    "flex-1 py-1.5 text-xs font-medium rounded-md border transition-colors",
-                    formType === "link"
-                      ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
-                      : "bg-neutral-800 text-neutral-500 border-neutral-700"
-                  )}
-                >
-                  Link
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormType("note")}
-                  className={cn(
-                    "flex-1 py-1.5 text-xs font-medium rounded-md border transition-colors",
-                    formType === "note"
-                      ? "bg-neutral-600/50 text-neutral-300 border-neutral-500"
-                      : "bg-neutral-800 text-neutral-500 border-neutral-700"
-                  )}
-                >
-                  Nota
-                </button>
+            <div>
+              <label style={labelStyle}>Tipo</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {(["link", "note"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setFormType(t)}
+                    style={{
+                      flex: 1,
+                      padding: "8px 4px",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      borderRadius: 8,
+                      border: formType === t ? "1px solid rgba(125,193,40,0.3)" : "1px solid #1f2a23",
+                      background: formType === t ? "rgba(125,193,40,0.1)" : "#0f1813",
+                      color: formType === t ? "#7DC128" : "#6e7a70",
+                      cursor: "pointer",
+                      textTransform: "uppercase",
+                      letterSpacing: ".06em",
+                    }}
+                  >
+                    {t === "link" ? "Link" : "Nota"}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-neutral-400">
-                {formType === "link" ? "URL" : "Conteúdo da nota"}
-              </Label>
+            <div>
+              <label style={labelStyle}>{formType === "link" ? "URL" : "Conteúdo da nota"}</label>
               {formType === "link" ? (
-                <Input
-                  value={formUrl}
-                  onChange={(e) => setFormUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-600 text-sm"
-                />
+                <input value={formUrl} onChange={(e) => setFormUrl(e.target.value)} placeholder="https://..." style={inputStyle} />
               ) : (
-                <textarea
-                  value={formUrl}
-                  onChange={(e) => setFormUrl(e.target.value)}
-                  placeholder="Texto da nota..."
-                  rows={3}
-                  className="w-full bg-neutral-900 border border-neutral-700 rounded-md px-3 py-2 text-sm text-white placeholder:text-neutral-600 resize-none focus:outline-none focus:border-red-500/50"
-                />
+                <textarea value={formUrl} onChange={(e) => setFormUrl(e.target.value)} placeholder="Texto da nota..." rows={3} style={{ ...inputStyle, resize: "none", fontFamily: "inherit" }} />
               )}
             </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
                 disabled={saving || !formName.trim()}
                 onClick={handleAdd}
-                className="bg-red-500 hover:bg-red-600 text-white"
+                style={{
+                  background: saving || !formName.trim() ? "#4a6a1a" : "#7DC128",
+                  color: "#0a1408",
+                  fontSize: 13,
+                  padding: "9px 16px",
+                  borderRadius: 8,
+                  fontWeight: 700,
+                  border: "none",
+                  cursor: saving || !formName.trim() ? "not-allowed" : "pointer",
+                  opacity: saving || !formName.trim() ? 0.7 : 1,
+                }}
               >
                 {saving ? "Salvando..." : "Adicionar"}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
+              </button>
+              <button
                 onClick={() => { setShowForm(false); setFormName(""); setFormUrl(""); }}
-                className="text-neutral-400 hover:text-white"
+                style={{
+                  border: "1px solid #1f2a23",
+                  color: "#a8b3aa",
+                  background: "#0f1813",
+                  fontSize: 13,
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                }}
               >
                 Cancelar
-              </Button>
+              </button>
             </div>
           </div>
         ) : (
           <button
             onClick={() => setShowForm(true)}
-            className="w-full py-2.5 border border-dashed border-neutral-700 rounded-lg text-sm text-neutral-500 hover:text-neutral-300 hover:border-neutral-600 transition-colors flex items-center justify-center gap-2"
+            style={{
+              width: "100%",
+              padding: "10px 0",
+              border: "1px dashed #28342a",
+              borderRadius: 10,
+              fontSize: 13,
+              color: "#6e7a70",
+              background: "transparent",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              transition: "all .15s",
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.color = "#7DC128"; e.currentTarget.style.borderColor = "rgba(125,193,40,0.4)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.color = "#6e7a70"; e.currentTarget.style.borderColor = "#28342a"; }}
           >
-            <Plus className="w-4 h-4" />
+            <Plus style={{ width: 14, height: 14 }} />
             Adicionar Anexo
           </button>
         )

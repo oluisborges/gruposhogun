@@ -2,30 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Pencil,
+  Clock,
+  Trash2,
+  Search,
+} from "lucide-react";
 import { initials } from "@/lib/formatting";
 import { formatBRTDate } from "@/lib/date-utils";
-import { Pencil, Clock, Trash2, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { UserSummary } from "@/types";
 
 interface UsersTableProps {
@@ -45,41 +29,29 @@ const TAG_LABELS: Record<string, string> = {
   GENERICA: "Genérica",
 };
 
-function RoleBadge({ role }: { role: string }) {
-  const colorMap: Record<string, string> = {
-    OWNER: "bg-red-500/20 text-red-400 border-red-500/30",
-    COORDINATOR: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-    MANAGER: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  };
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border",
-        colorMap[role] ?? "bg-neutral-700 text-neutral-300 border-neutral-600"
-      )}
-    >
-      {ROLE_LABELS[role] ?? role}
-    </span>
-  );
-}
+const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
+  OWNER: { bg: "rgba(216,90,74,0.1)", text: "#d85a4a" },
+  COORDINATOR: { bg: "rgba(232,167,58,0.1)", text: "#e8a73a" },
+  MANAGER: { bg: "rgba(125,193,40,0.1)", text: "#7DC128" },
+};
 
-function TagBadge({ tag }: { tag: string }) {
-  const colorMap: Record<string, string> = {
-    MARMITARIA: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-    DELIVERY: "bg-red-500/20 text-red-400 border-red-500/30",
-    GENERICA: "bg-neutral-500/20 text-neutral-400 border-neutral-500/30",
-  };
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center px-1.5 py-0.5 rounded text-xs border",
-        colorMap[tag] ?? "bg-neutral-700 text-neutral-300 border-neutral-600"
-      )}
-    >
-      {TAG_LABELS[tag] ?? tag}
-    </span>
-  );
-}
+const TAG_COLORS: Record<string, { bg: string; text: string }> = {
+  MARMITARIA: { bg: "rgba(232,167,58,0.1)", text: "#e8a73a" },
+  DELIVERY: { bg: "rgba(216,90,74,0.1)", text: "#d85a4a" },
+  GENERICA: { bg: "rgba(125,193,40,0.1)", text: "#7DC128" },
+};
+
+const selectStyle: React.CSSProperties = {
+  height: 34,
+  fontSize: 13,
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  color: "#a8b3aa",
+  borderRadius: 8,
+  padding: "0 10px",
+  outline: "none",
+  cursor: "pointer",
+};
 
 export function UsersTable({ users, currentUser }: UsersTableProps) {
   const router = useRouter();
@@ -106,9 +78,7 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
   async function handleToggleActive(userId: string) {
     setTogglingId(userId);
     try {
-      const res = await fetch(`/api/users/${userId}/toggle-active`, {
-        method: "POST",
-      });
+      const res = await fetch(`/api/users/${userId}/toggle-active`, { method: "POST" });
       if (!res.ok) {
         const data = await res.json();
         alert(data.error ?? "Erro ao alterar status");
@@ -137,151 +107,238 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-          <Input
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+        <div style={{ position: "relative", flex: "1 1 220px", maxWidth: 320 }}>
+          <Search style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "#4a5450", pointerEvents: "none" }} />
+          <input
             placeholder="Buscar por nome ou email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            style={{
+              width: "100%",
+              paddingLeft: 32,
+              paddingRight: 12,
+              paddingTop: 9,
+              paddingBottom: 9,
+              background: "#0f1813",
+              border: "1px solid #1f2a23",
+              borderRadius: 8,
+              color: "#e6efe8",
+              fontSize: 13,
+              outline: "none",
+              boxSizing: "border-box",
+            }}
           />
         </div>
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">Todos os papéis</SelectItem>
-            <SelectItem value="OWNER">Owner</SelectItem>
-            <SelectItem value="COORDINATOR">Coordenador</SelectItem>
-            <SelectItem value="MANAGER">Gerente</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-36">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">Todos</SelectItem>
-            <SelectItem value="ACTIVE">Ativo</SelectItem>
-            <SelectItem value="INACTIVE">Inativo</SelectItem>
-          </SelectContent>
-        </Select>
+        <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} style={selectStyle}>
+          <option value="ALL">Todos os papéis</option>
+          <option value="OWNER">Owner</option>
+          <option value="COORDINATOR">Coordenador</option>
+          <option value="MANAGER">Gerente</option>
+        </select>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={selectStyle}>
+          <option value="ALL">Todos</option>
+          <option value="ACTIVE">Ativo</option>
+          <option value="INACTIVE">Inativo</option>
+        </select>
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-neutral-800 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      <div style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, overflow: "hidden" }}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr className="border-b border-neutral-800 bg-neutral-900/50">
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Usuário</th>
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Papel</th>
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Tags</th>
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Status</th>
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Criado em</th>
-                <th className="text-right px-4 py-3 text-neutral-400 font-medium">Ações</th>
+              <tr style={{ borderBottom: "1px solid #1f2a23" }}>
+                {["Usuário", "Papel", "Tags", "Status", "Criado em", "Ações"].map((h, i) => (
+                  <th
+                    key={h}
+                    style={{
+                      padding: "10px 16px",
+                      textAlign: i === 5 ? "right" : "left",
+                      fontSize: 11,
+                      textTransform: "uppercase",
+                      letterSpacing: ".1em",
+                      color: "#6e7a70",
+                      fontWeight: 700,
+                      paddingBottom: 10,
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-neutral-500">
-                    Nenhum usuário encontrado
+                  <td colSpan={6} style={{ padding: "48px 16px", textAlign: "center", color: "#6e7a70", fontSize: 13 }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                      <Search style={{ width: 24, height: 24, opacity: 0.4 }} />
+                      Nenhum usuário encontrado
+                    </div>
                   </td>
                 </tr>
               ) : (
-                filtered.map((u) => (
+                filtered.map((u, idx) => (
                   <tr
                     key={u.id}
-                    className="border-b border-neutral-800/50 last:border-0 hover:bg-neutral-800/20 transition-colors"
+                    style={{ borderBottom: idx < filtered.length - 1 ? "1px dashed #1f2a23" : "none" }}
                   >
                     {/* Avatar + Nome + Email */}
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-medium text-red-400">
-                            {initials(u.name)}
-                          </span>
+                    <td style={{ padding: "12px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 8,
+                          background: "linear-gradient(135deg, #244a32, #15301f)",
+                          border: "1px solid #284d36",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#9be03a",
+                          flexShrink: 0,
+                        }}>
+                          {initials(u.name)}
                         </div>
                         <div>
-                          <p className="font-medium text-white">{u.name}</p>
-                          <p className="text-xs text-neutral-500">{u.email}</p>
+                          <p style={{ fontWeight: 600, color: "#e6efe8", fontSize: 13 }}>{u.name}</p>
+                          <p style={{ fontSize: 11, color: "#6e7a70" }}>{u.email}</p>
                         </div>
                       </div>
                     </td>
                     {/* Role */}
-                    <td className="px-4 py-3">
-                      <RoleBadge role={u.role} />
+                    <td style={{ padding: "12px 16px" }}>
+                      <span style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        padding: "3px 8px",
+                        borderRadius: 20,
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        letterSpacing: ".06em",
+                        textTransform: "uppercase",
+                        background: ROLE_COLORS[u.role]?.bg ?? "#182219",
+                        color: ROLE_COLORS[u.role]?.text ?? "#6e7a70",
+                      }}>
+                        {ROLE_LABELS[u.role] ?? u.role}
+                      </span>
                     </td>
                     {/* Tags */}
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
+                    <td style={{ padding: "12px 16px" }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                         {u.tags.length === 0 ? (
-                          <span className="text-neutral-600 text-xs">—</span>
+                          <span style={{ fontSize: 13, color: "#4a5450" }}>—</span>
                         ) : (
                           u.tags.map((tag) => (
-                            <TagBadge key={tag} tag={tag} />
+                            <span
+                              key={tag}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                padding: "3px 8px",
+                                borderRadius: 20,
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                letterSpacing: ".06em",
+                                textTransform: "uppercase",
+                                background: TAG_COLORS[tag]?.bg ?? "#182219",
+                                color: TAG_COLORS[tag]?.text ?? "#6e7a70",
+                              }}
+                            >
+                              {TAG_LABELS[tag] ?? tag}
+                            </span>
                           ))
                         )}
                       </div>
                     </td>
                     {/* Status */}
-                    <td className="px-4 py-3">
-                      <span
-                        className={cn(
-                          "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                          u.active
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-neutral-700 text-neutral-400"
-                        )}
-                      >
+                    <td style={{ padding: "12px 16px" }}>
+                      <span style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        padding: "3px 8px",
+                        borderRadius: 20,
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        letterSpacing: ".06em",
+                        textTransform: "uppercase",
+                        background: u.active ? "rgba(125,193,40,0.1)" : "#182219",
+                        color: u.active ? "#7DC128" : "#6e7a70",
+                      }}>
                         {u.active ? "Ativo" : "Inativo"}
                       </span>
                     </td>
                     {/* createdAt */}
-                    <td className="px-4 py-3 text-neutral-400 text-xs">
+                    <td style={{ padding: "12px 16px", color: "#6e7a70", fontSize: 12, fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
                       {formatBRTDate(u.createdAt)}
                     </td>
                     {/* Actions */}
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Edit */}
+                    <td style={{ padding: "12px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4 }}>
                         <button
                           onClick={() => router.push(`/dashboard/users/${u.id}/edit`)}
-                          className="p-1.5 rounded text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
                           title="Editar"
+                          style={{ padding: 6, borderRadius: 6, background: "transparent", border: "none", color: "#4a5450", cursor: "pointer" }}
+                          onMouseOver={(e) => (e.currentTarget.style.color = "#a8b3aa")}
+                          onMouseOut={(e) => (e.currentTarget.style.color = "#4a5450")}
                         >
-                          <Pencil className="w-3.5 h-3.5" />
+                          <Pencil style={{ width: 13, height: 13 }} />
                         </button>
-                        {/* History */}
                         <button
                           onClick={() => router.push(`/dashboard/users/${u.id}/history`)}
-                          className="p-1.5 rounded text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
                           title="Histórico"
+                          style={{ padding: 6, borderRadius: 6, background: "transparent", border: "none", color: "#4a5450", cursor: "pointer" }}
+                          onMouseOver={(e) => (e.currentTarget.style.color = "#a8b3aa")}
+                          onMouseOut={(e) => (e.currentTarget.style.color = "#4a5450")}
                         >
-                          <Clock className="w-3.5 h-3.5" />
+                          <Clock style={{ width: 13, height: 13 }} />
                         </button>
-                        {/* Toggle active — OWNER only, not self */}
                         {currentUser.role === "OWNER" && currentUser.id !== u.id && (
-                          <Switch
-                            checked={u.active}
+                          <button
+                            onClick={() => handleToggleActive(u.id)}
                             disabled={togglingId === u.id}
-                            onCheckedChange={() => handleToggleActive(u.id)}
                             title={u.active ? "Desativar" : "Ativar"}
-                          />
+                            style={{
+                              position: "relative",
+                              display: "inline-flex",
+                              height: 18,
+                              width: 32,
+                              alignItems: "center",
+                              borderRadius: 9,
+                              border: "2px solid",
+                              borderColor: u.active ? "#7DC128" : "#1f2a23",
+                              background: u.active ? "#7DC128" : "#182219",
+                              cursor: togglingId === u.id ? "not-allowed" : "pointer",
+                              transition: "all .2s",
+                              padding: 0,
+                              opacity: togglingId === u.id ? 0.5 : 1,
+                            }}
+                          >
+                            <span style={{
+                              display: "inline-block",
+                              height: 12,
+                              width: 12,
+                              borderRadius: "50%",
+                              background: "#fff",
+                              transform: u.active ? "translateX(14px)" : "translateX(2px)",
+                              transition: "transform .2s",
+                            }} />
+                          </button>
                         )}
-                        {/* Delete — OWNER only, not self */}
                         {currentUser.role === "OWNER" && currentUser.id !== u.id && (
                           <button
                             onClick={() => setDeleteTarget(u)}
-                            className="p-1.5 rounded text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                             title="Excluir"
+                            style={{ padding: 6, borderRadius: 6, background: "transparent", border: "none", color: "#4a5450", cursor: "pointer" }}
+                            onMouseOver={(e) => (e.currentTarget.style.color = "#d85a4a")}
+                            onMouseOut={(e) => (e.currentTarget.style.color = "#4a5450")}
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 style={{ width: 13, height: 13 }} />
                           </button>
                         )}
                       </div>
@@ -294,31 +351,66 @@ export function UsersTable({ users, currentUser }: UsersTableProps) {
         </div>
       </div>
 
-      {/* Delete Confirm Dialog */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Excluir usuário</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja excluir <strong className="text-white">{deleteTarget?.name}</strong>? Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline" disabled={!!deletingId}>
+      {/* Delete Confirm Modal */}
+      {deleteTarget && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }} onClick={() => setDeleteTarget(null)} />
+          <div style={{
+            position: "relative",
+            background: "#141f18",
+            border: "1px solid #28342a",
+            borderRadius: 10,
+            padding: 24,
+            maxWidth: 420,
+            width: "100%",
+            boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+          }}>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".02em", color: "#e6efe8", margin: "0 0 12px" }}>
+              Excluir usuário
+            </h2>
+            <p style={{ fontSize: 13, color: "#a8b3aa", marginBottom: 20 }}>
+              Tem certeza que deseja excluir{" "}
+              <strong style={{ color: "#e6efe8" }}>{deleteTarget.name}</strong>?
+              {" "}Esta ação não pode ser desfeita.
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={!!deletingId}
+                style={{
+                  border: "1px solid #1f2a23",
+                  color: "#a8b3aa",
+                  background: "#0f1813",
+                  fontSize: 13,
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  opacity: deletingId ? 0.5 : 1,
+                }}
+              >
                 Cancelar
-              </Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              disabled={!!deletingId}
-              onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
-            >
-              {deletingId ? "Excluindo..." : "Excluir"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              </button>
+              <button
+                onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
+                disabled={!!deletingId}
+                style={{
+                  background: deletingId ? "#7a2a22" : "#d85a4a",
+                  color: "#fff",
+                  fontSize: 13,
+                  padding: "9px 16px",
+                  borderRadius: 8,
+                  fontWeight: 700,
+                  border: "none",
+                  cursor: deletingId ? "not-allowed" : "pointer",
+                  opacity: deletingId ? 0.8 : 1,
+                }}
+              >
+                {deletingId ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,12 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { Plus, Trash2, ExternalLink } from "lucide-react";
 import type { MetaAccount, AccountObjective, Role } from "@prisma/client";
 
 type SafeMetaAccount = Omit<MetaAccount, "tokenEncrypted">;
@@ -23,10 +18,32 @@ const OBJECTIVE_LABELS: Record<AccountObjective, string> = {
   WHATSAPP: "WhatsApp",
 };
 
-const OBJECTIVE_COLORS: Record<AccountObjective, string> = {
-  CARDAPIO: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  LEADS: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  WHATSAPP: "bg-green-500/10 text-green-400 border-green-500/20",
+const OBJECTIVE_COLORS: Record<AccountObjective, { bg: string; text: string }> = {
+  CARDAPIO: { bg: "rgba(125,193,40,0.1)", text: "#7DC128" },
+  LEADS: { bg: "rgba(232,167,58,0.1)", text: "#e8a73a" },
+  WHATSAPP: { bg: "rgba(125,193,40,0.08)", text: "#9be03a" },
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  borderRadius: 8,
+  color: "#e6efe8",
+  fontSize: 13,
+  padding: "9px 14px",
+  outline: "none",
+  boxSizing: "border-box",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: ".1em",
+  color: "#6e7a70",
+  marginBottom: 6,
 };
 
 export function MetaAccountsSection({ clientId, accounts: initialAccounts, userRole }: MetaAccountsSectionProps) {
@@ -35,7 +52,6 @@ export function MetaAccountsSection({ clientId, accounts: initialAccounts, userR
   const [saving, setSaving] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  // Form state
   const [formAccountId, setFormAccountId] = useState("");
   const [formAccountName, setFormAccountName] = useState("");
   const [formToken, setFormToken] = useState("");
@@ -97,75 +113,113 @@ export function MetaAccountsSection({ clientId, accounts: initialAccounts, userR
   }
 
   return (
-    <div className="space-y-3">
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {accounts.length === 0 && !showForm && (
-        <p className="text-sm text-neutral-500 italic">Nenhuma conta Meta Ads cadastrada</p>
+        <p style={{ fontSize: 13, color: "#4a5450", fontStyle: "italic" }}>Nenhuma conta Meta Ads cadastrada</p>
       )}
 
       {accounts.map((account) => (
         <div
           key={account.id}
-          className="bg-neutral-800/50 border border-neutral-700/50 rounded-lg p-4"
+          style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, padding: 16 }}
         >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-medium text-white text-sm">
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <p style={{ fontWeight: 600, color: "#e6efe8", fontSize: 13 }}>
                   {account.accountName ?? account.accountId}
                 </p>
-                <span
-                  className={cn(
-                    "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold",
-                    OBJECTIVE_COLORS[account.objective]
-                  )}
-                >
+                <span style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "3px 8px",
+                  borderRadius: 20,
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: ".06em",
+                  textTransform: "uppercase",
+                  background: OBJECTIVE_COLORS[account.objective].bg,
+                  color: OBJECTIVE_COLORS[account.objective].text,
+                }}>
                   {OBJECTIVE_LABELS[account.objective]}
                 </span>
                 {!account.active && (
-                  <Badge variant="outline">Inativo</Badge>
+                  <span style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    padding: "3px 8px",
+                    borderRadius: 20,
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: ".06em",
+                    textTransform: "uppercase",
+                    background: "#182219",
+                    color: "#6e7a70",
+                  }}>Inativo</span>
                 )}
               </div>
-              <p className="text-xs text-neutral-500 mt-0.5">ID: {account.accountId}</p>
+              <p style={{ fontSize: 11, color: "#6e7a70", marginTop: 3, fontFamily: "var(--font-mono)" }}>
+                ID: {account.accountId}
+              </p>
               {account.billingUrl && (
                 <a
                   href={account.billingUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-1"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#7DC128", marginTop: 4, textDecoration: "none" }}
                 >
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink style={{ width: 11, height: 11 }} />
                   Link de Cobrança
                 </a>
               )}
               {account.campaignFilter.length > 0 && (
-                <p className="text-xs text-neutral-600 mt-1">
+                <p style={{ fontSize: 11, color: "#4a5450", marginTop: 4 }}>
                   Filtros: {account.campaignFilter.join(", ")}
                 </p>
               )}
             </div>
             {canEdit && (
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                {/* Toggle switch */}
                 <button
                   onClick={() => handleToggle(account)}
                   disabled={togglingId === account.id}
-                  className={cn(
-                    "relative inline-flex h-5 w-9 items-center rounded-full border-2 transition-colors disabled:opacity-50",
-                    account.active ? "bg-green-500 border-green-500" : "bg-neutral-700 border-neutral-700"
-                  )}
                   title={account.active ? "Desativar" : "Ativar"}
+                  style={{
+                    position: "relative",
+                    display: "inline-flex",
+                    height: 20,
+                    width: 36,
+                    alignItems: "center",
+                    borderRadius: 10,
+                    border: "2px solid",
+                    borderColor: account.active ? "#7DC128" : "#1f2a23",
+                    background: account.active ? "#7DC128" : "#182219",
+                    cursor: togglingId === account.id ? "not-allowed" : "pointer",
+                    transition: "all .2s",
+                    padding: 0,
+                    opacity: togglingId === account.id ? 0.5 : 1,
+                  }}
                 >
                   <span
-                    className={cn(
-                      "inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform",
-                      account.active ? "translate-x-4" : "translate-x-0.5"
-                    )}
+                    style={{
+                      display: "inline-block",
+                      height: 14,
+                      width: 14,
+                      borderRadius: "50%",
+                      background: "#fff",
+                      transform: account.active ? "translateX(16px)" : "translateX(2px)",
+                      transition: "transform .2s",
+                    }}
                   />
                 </button>
                 <button
                   onClick={() => handleDelete(account.id)}
-                  className="p-1 rounded text-neutral-600 hover:text-red-400 transition-colors"
+                  style={{ padding: 4, borderRadius: 4, background: "transparent", border: "none", cursor: "pointer", color: "#4a5450" }}
+                  onMouseOver={(e) => (e.currentTarget.style.color = "#d85a4a")}
+                  onMouseOut={(e) => (e.currentTarget.style.color = "#4a5450")}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 style={{ width: 14, height: 14 }} />
                 </button>
               </div>
             )}
@@ -175,93 +229,98 @@ export function MetaAccountsSection({ clientId, accounts: initialAccounts, userR
 
       {canEdit && (
         showForm ? (
-          <div className="bg-neutral-800/50 border border-red-500/30 rounded-lg p-4 space-y-3">
-            <h4 className="text-sm font-medium text-neutral-300">Nova Conta Meta Ads</h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs text-neutral-400">Account ID *</Label>
-                <Input
-                  value={formAccountId}
-                  onChange={(e) => setFormAccountId(e.target.value)}
-                  placeholder="123456789"
-                  className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-600 text-sm"
-                />
+          <div style={{ background: "#141f18", border: "1px solid rgba(125,193,40,0.2)", borderRadius: 10, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "#e6efe8" }}>Nova Conta Meta Ads</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label style={labelStyle}>Account ID *</label>
+                <input value={formAccountId} onChange={(e) => setFormAccountId(e.target.value)} placeholder="123456789" style={inputStyle} />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-neutral-400">Nome da Conta</Label>
-                <Input
-                  value={formAccountName}
-                  onChange={(e) => setFormAccountName(e.target.value)}
-                  placeholder="Nome"
-                  className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-600 text-sm"
-                />
+              <div>
+                <label style={labelStyle}>Nome da Conta</label>
+                <input value={formAccountName} onChange={(e) => setFormAccountName(e.target.value)} placeholder="Nome" style={inputStyle} />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-neutral-400">Token</Label>
-                <Input
-                  value={formToken}
-                  onChange={(e) => setFormToken(e.target.value)}
-                  type="password"
-                  placeholder="Token de acesso"
-                  className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-600 text-sm"
-                />
+              <div>
+                <label style={labelStyle}>Token</label>
+                <input value={formToken} onChange={(e) => setFormToken(e.target.value)} type="password" placeholder="Token de acesso" style={inputStyle} />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-neutral-400">Objetivo</Label>
+              <div>
+                <label style={labelStyle}>Objetivo</label>
                 <select
                   value={formObjective}
                   onChange={(e) => setFormObjective(e.target.value as AccountObjective)}
-                  className="w-full bg-neutral-900 border border-neutral-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500/50"
+                  style={{ ...inputStyle, cursor: "pointer" }}
                 >
                   <option value="CARDAPIO">Cardápio</option>
                   <option value="LEADS">Leads</option>
                   <option value="WHATSAPP">WhatsApp</option>
                 </select>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-neutral-400">URL de Cobrança</Label>
-                <Input
-                  value={formBillingUrl}
-                  onChange={(e) => setFormBillingUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-600 text-sm"
-                />
+              <div>
+                <label style={labelStyle}>URL de Cobrança</label>
+                <input value={formBillingUrl} onChange={(e) => setFormBillingUrl(e.target.value)} placeholder="https://..." style={inputStyle} />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-neutral-400">Filtro de Campanhas (vírgula)</Label>
-                <Input
-                  value={formCampaignFilter}
-                  onChange={(e) => setFormCampaignFilter(e.target.value)}
-                  placeholder="camp1, camp2"
-                  className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-600 text-sm"
-                />
+              <div>
+                <label style={labelStyle}>Filtro de Campanhas (vírgula)</label>
+                <input value={formCampaignFilter} onChange={(e) => setFormCampaignFilter(e.target.value)} placeholder="camp1, camp2" style={inputStyle} />
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
                 disabled={saving || !formAccountId.trim()}
                 onClick={handleAdd}
-                className="bg-red-500 hover:bg-red-600 text-white"
+                style={{
+                  background: saving || !formAccountId.trim() ? "#4a6a1a" : "#7DC128",
+                  color: "#0a1408",
+                  fontSize: 13,
+                  padding: "9px 16px",
+                  borderRadius: 8,
+                  fontWeight: 700,
+                  border: "none",
+                  cursor: saving || !formAccountId.trim() ? "not-allowed" : "pointer",
+                  opacity: saving || !formAccountId.trim() ? 0.7 : 1,
+                }}
               >
                 {saving ? "Salvando..." : "Adicionar"}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
+              </button>
+              <button
                 onClick={() => setShowForm(false)}
-                className="text-neutral-400 hover:text-white"
+                style={{
+                  border: "1px solid #1f2a23",
+                  color: "#a8b3aa",
+                  background: "#0f1813",
+                  fontSize: 13,
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                }}
               >
                 Cancelar
-              </Button>
+              </button>
             </div>
           </div>
         ) : (
           <button
             onClick={() => setShowForm(true)}
-            className="w-full py-2.5 border border-dashed border-neutral-700 rounded-lg text-sm text-neutral-500 hover:text-neutral-300 hover:border-neutral-600 transition-colors flex items-center justify-center gap-2"
+            style={{
+              width: "100%",
+              padding: "10px 0",
+              border: "1px dashed #28342a",
+              borderRadius: 10,
+              fontSize: 13,
+              color: "#6e7a70",
+              background: "transparent",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              transition: "all .15s",
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.color = "#7DC128"; e.currentTarget.style.borderColor = "rgba(125,193,40,0.4)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.color = "#6e7a70"; e.currentTarget.style.borderColor = "#28342a"; }}
           >
-            <Plus className="w-4 h-4" />
+            <Plus style={{ width: 14, height: 14 }} />
             Adicionar Conta Meta Ads
           </button>
         )

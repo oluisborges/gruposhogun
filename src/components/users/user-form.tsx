@@ -2,18 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { UserSummary } from "@/types";
 
 interface UserFormProps {
@@ -34,6 +22,28 @@ const ALL_ROLES = [
   { value: "MANAGER", label: "Gerente" },
 ] as const;
 
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  borderRadius: 8,
+  color: "#e6efe8",
+  fontSize: 13,
+  padding: "9px 14px",
+  outline: "none",
+  boxSizing: "border-box",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: ".12em",
+  color: "#6e7a70",
+  marginBottom: 6,
+};
+
 export function UserForm({ mode, user, currentUser }: UserFormProps) {
   const router = useRouter();
 
@@ -48,13 +58,11 @@ export function UserForm({ mode, user, currentUser }: UserFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // COORDINATOR cannot see OWNER role option
   const availableRoles = ALL_ROLES.filter(
     (r) => !(currentUser.role === "COORDINATOR" && r.value === "OWNER")
   );
 
   const isEditingSelf = mode === "edit" && user?.id === currentUser.id;
-  // Role field is disabled if editing self (nobody can change own role)
   const roleDisabled = isEditingSelf;
 
   function toggleTag(tag: string) {
@@ -77,13 +85,11 @@ export function UserForm({ mode, user, currentUser }: UserFormProps) {
         body.password = password;
       }
 
-      // Only OWNER can update active in edit mode
       if (mode === "edit" && currentUser.role === "OWNER" && !isEditingSelf) {
         body.active = active;
       }
 
-      const url =
-        mode === "create" ? "/api/users" : `/api/users/${user!.id}`;
+      const url = mode === "create" ? "/api/users" : `/api/users/${user!.id}`;
       const method = mode === "create" ? "POST" : "PATCH";
 
       const res = await fetch(url, {
@@ -108,129 +114,198 @@ export function UserForm({ mode, user, currentUser }: UserFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">
-          {error}
-        </div>
-      )}
-
-      {/* Nome */}
-      <div className="space-y-2">
-        <Label htmlFor="name">Nome</Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nome completo"
-          required
-        />
-      </div>
-
-      {/* Email */}
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="email@exemplo.com"
-          required
-        />
-      </div>
-
-      {/* Senha */}
-      <div className="space-y-2">
-        <Label htmlFor="password">
-          Senha{mode === "create" ? "" : " (deixe em branco para manter a atual)"}
-        </Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={mode === "create" ? "Senha obrigatória" : "Nova senha (opcional)"}
-          required={mode === "create"}
-          autoComplete="new-password"
-        />
-      </div>
-
-      {/* Papel */}
-      <div className="space-y-2">
-        <Label htmlFor="role">Papel</Label>
-        <Select
-          value={role}
-          onValueChange={setRole}
-          disabled={roleDisabled}
-        >
-          <SelectTrigger id="role" className={roleDisabled ? "opacity-50 cursor-not-allowed" : ""}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {availableRoles.map((r) => (
-              <SelectItem key={r.value} value={r.value}>
-                {r.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {roleDisabled && (
-          <p className="text-xs text-neutral-500">Você não pode alterar seu próprio papel.</p>
+    <div style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, padding: 24, maxWidth: 520 }}>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {error && (
+          <div style={{ background: "rgba(216,90,74,0.1)", border: "1px solid rgba(216,90,74,0.3)", color: "#d85a4a", fontSize: 13, padding: "10px 14px", borderRadius: 8 }}>
+            {error}
+          </div>
         )}
-      </div>
 
-      {/* Tags */}
-      <div className="space-y-3">
-        <Label>Tags</Label>
-        <div className="flex flex-wrap gap-4">
-          {TAGS.map((tag) => (
-            <label key={tag.value} className="flex items-center gap-2 cursor-pointer">
-              <Checkbox
-                id={`tag-${tag.value}`}
-                checked={tags.includes(tag.value)}
-                onCheckedChange={() => toggleTag(tag.value)}
-              />
-              <span className="text-sm text-neutral-300">{tag.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Ativo — OWNER only, hidden in create mode and when editing self */}
-      {mode === "edit" && currentUser.role === "OWNER" && !isEditingSelf && (
-        <div className="flex items-center gap-3">
-          <Switch
-            id="active"
-            checked={active}
-            onCheckedChange={setActive}
+        {/* Nome */}
+        <div>
+          <label style={labelStyle}>Nome *</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nome completo"
+            required
+            style={inputStyle}
           />
-          <Label htmlFor="active" className="cursor-pointer">
-            {active ? "Ativo" : "Inativo"}
-          </Label>
         </div>
-      )}
 
-      {/* Actions */}
-      <div className="flex gap-3 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={loading}
-        >
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={loading}>
-          {loading
-            ? mode === "create"
-              ? "Criando..."
-              : "Salvando..."
-            : mode === "create"
-              ? "Criar Usuário"
-              : "Salvar Alterações"}
-        </Button>
-      </div>
-    </form>
+        {/* Email */}
+        <div>
+          <label style={labelStyle}>Email *</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="email@exemplo.com"
+            required
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Senha */}
+        <div>
+          <label style={labelStyle}>
+            Senha{mode === "create" ? " *" : " (deixe em branco para manter a atual)"}
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={mode === "create" ? "Senha obrigatória" : "Nova senha (opcional)"}
+            required={mode === "create"}
+            autoComplete="new-password"
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Papel */}
+        <div>
+          <label style={labelStyle}>Papel</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            disabled={roleDisabled}
+            style={{
+              ...inputStyle,
+              cursor: roleDisabled ? "not-allowed" : "pointer",
+              opacity: roleDisabled ? 0.5 : 1,
+            }}
+          >
+            {availableRoles.map((r) => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
+          {roleDisabled && (
+            <p style={{ fontSize: 11, color: "#6e7a70", marginTop: 4 }}>Você não pode alterar seu próprio papel.</p>
+          )}
+        </div>
+
+        {/* Tags */}
+        <div>
+          <label style={labelStyle}>Tags</label>
+          <div style={{ display: "flex", gap: 8 }}>
+            {TAGS.map((tag) => {
+              const checked = tags.includes(tag.value);
+              const TAG_ACTIVE: Record<string, { bg: string; color: string; border: string }> = {
+                MARMITARIA: { bg: "rgba(232,167,58,0.12)", color: "#e8a73a", border: "rgba(232,167,58,0.3)" },
+                DELIVERY: { bg: "rgba(216,90,74,0.12)", color: "#d85a4a", border: "rgba(216,90,74,0.3)" },
+                GENERICA: { bg: "rgba(125,193,40,0.12)", color: "#7DC128", border: "rgba(125,193,40,0.3)" },
+              };
+              const s = TAG_ACTIVE[tag.value];
+              return (
+                <button
+                  key={tag.value}
+                  type="button"
+                  onClick={() => toggleTag(tag.value)}
+                  style={{
+                    flex: 1,
+                    padding: "8px 4px",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    borderRadius: 8,
+                    border: checked ? `1px solid ${s.border}` : "1px solid #1f2a23",
+                    background: checked ? s.bg : "#0f1813",
+                    color: checked ? s.color : "#6e7a70",
+                    cursor: "pointer",
+                    transition: "all .15s",
+                    letterSpacing: ".04em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {tag.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Ativo — OWNER only, hidden in create mode and when editing self */}
+        {mode === "edit" && currentUser.role === "OWNER" && !isEditingSelf && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={active}
+              onClick={() => setActive(!active)}
+              style={{
+                position: "relative",
+                display: "inline-flex",
+                height: 20,
+                width: 36,
+                alignItems: "center",
+                borderRadius: 10,
+                border: "2px solid",
+                borderColor: active ? "#7DC128" : "#1f2a23",
+                background: active ? "#7DC128" : "#182219",
+                cursor: "pointer",
+                transition: "all .2s",
+                padding: 0,
+              }}
+            >
+              <span style={{
+                display: "inline-block",
+                height: 14,
+                width: 14,
+                borderRadius: "50%",
+                background: "#fff",
+                transform: active ? "translateX(16px)" : "translateX(2px)",
+                transition: "transform .2s",
+              }} />
+            </button>
+            <label
+              style={{ fontSize: 13, color: "#a8b3aa", cursor: "pointer" }}
+              onClick={() => setActive(!active)}
+            >
+              {active ? "Ativo" : "Inativo"}
+            </label>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div style={{ display: "flex", gap: 8, paddingTop: 4 }}>
+          <button
+            type="button"
+            onClick={() => router.back()}
+            disabled={loading}
+            style={{
+              border: "1px solid #1f2a23",
+              color: "#a8b3aa",
+              background: "#0f1813",
+              fontSize: 13,
+              padding: "8px 14px",
+              borderRadius: 8,
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.5 : 1,
+            }}
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              background: loading ? "#4a6a1a" : "#7DC128",
+              color: "#0a1408",
+              fontSize: 13,
+              padding: "9px 16px",
+              borderRadius: 8,
+              fontWeight: 700,
+              border: "none",
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.8 : 1,
+            }}
+          >
+            {loading
+              ? mode === "create" ? "Criando..." : "Salvando..."
+              : mode === "create" ? "Criar Usuário" : "Salvar Alterações"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

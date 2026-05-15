@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { X, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { TaskWithRelations, UserSummary } from "@/types";
 import type { TaskStatus, TaskPriority } from "@prisma/client";
@@ -42,6 +41,30 @@ interface TaskModalProps {
   users: UserSummary[];
   onSaved: () => void;
 }
+
+const selectStyle: React.CSSProperties = {
+  width: "100%",
+  height: 34,
+  fontSize: 13,
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  color: "#a8b3aa",
+  borderRadius: 8,
+  padding: "0 10px",
+  outline: "none",
+  cursor: "pointer",
+  boxSizing: "border-box",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: ".1em",
+  color: "#6e7a70",
+  marginBottom: 4,
+};
 
 export function TaskModal({
   open,
@@ -152,153 +175,199 @@ export function TaskModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative bg-neutral-900 border border-neutral-800 rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
+    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }} onClick={onClose} />
+      <div style={{
+        position: "relative",
+        background: "#141f18",
+        border: "1px solid #28342a",
+        borderRadius: 10,
+        width: "100%",
+        maxWidth: 680,
+        maxHeight: "90vh",
+        display: "flex",
+        flexDirection: "column",
+        boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+      }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800 flex-shrink-0">
-          <h2 className="text-base font-semibold text-white">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid #1f2a23", flexShrink: 0 }}>
+          <h2 style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 20,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: ".02em",
+            color: "#e6efe8",
+            margin: 0,
+          }}>
             {task ? "Editar Tarefa" : "Nova Tarefa"}
           </h2>
-          <button onClick={onClose} className="text-neutral-500 hover:text-white transition-colors">
-            <X className="w-4 h-4" />
+          <button onClick={onClose} style={{ padding: 6, background: "transparent", border: "none", color: "#6e7a70", cursor: "pointer", borderRadius: 6 }}>
+            <X style={{ width: 18, height: 18 }} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
           {/* Title */}
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Título da tarefa..."
-            className="w-full bg-transparent text-lg font-semibold text-white placeholder:text-neutral-600 border-b border-neutral-700 pb-2 focus:outline-none focus:border-neutral-500"
+            style={{
+              width: "100%",
+              background: "transparent",
+              fontSize: 17,
+              fontWeight: 600,
+              color: "#e6efe8",
+              border: "none",
+              borderBottom: "1px solid #1f2a23",
+              paddingBottom: 8,
+              outline: "none",
+              boxSizing: "border-box",
+            }}
           />
 
           {/* Two-column layout */}
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 220px", gap: 16 }}>
             {/* Left: Description */}
-            <div className="sm:col-span-3">
-              <label className="block text-xs text-neutral-500 mb-1.5">Descrição</label>
+            <div>
+              <label style={labelStyle}>Descrição</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Adicionar descrição..."
                 rows={6}
-                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-300 placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 resize-none"
+                style={{
+                  width: "100%",
+                  background: "#0f1813",
+                  border: "1px solid #1f2a23",
+                  borderRadius: 8,
+                  color: "#a8b3aa",
+                  fontSize: 13,
+                  padding: "9px 14px",
+                  outline: "none",
+                  resize: "none",
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                }}
               />
             </div>
 
-            {/* Right: Sidebar */}
-            <div className="sm:col-span-2 space-y-3">
+            {/* Right: Properties */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <div>
-                <label className="block text-xs text-neutral-500 mb-1">Status</label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                  className="w-full h-8 text-sm bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none"
-                >
-                  {STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
+                <label style={labelStyle}>Status</label>
+                <select value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)} style={selectStyle}>
+                  {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
-
               <div>
-                <label className="block text-xs text-neutral-500 mb-1">Prioridade</label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                  className="w-full h-8 text-sm bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none"
-                >
-                  {PRIORITY_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
+                <label style={labelStyle}>Prioridade</label>
+                <select value={priority} onChange={(e) => setPriority(e.target.value as TaskPriority)} style={selectStyle}>
+                  {PRIORITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
-
               <div>
-                <label className="block text-xs text-neutral-500 mb-1">Prazo</label>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full h-8 text-sm bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none"
-                />
+                <label style={labelStyle}>Prazo</label>
+                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} style={selectStyle} />
               </div>
-
               <div>
-                <label className="block text-xs text-neutral-500 mb-1">Cliente</label>
-                <select
-                  value={clientId}
-                  onChange={(e) => setClientId(e.target.value)}
-                  className="w-full h-8 text-sm bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none"
-                >
+                <label style={labelStyle}>Cliente</label>
+                <select value={clientId} onChange={(e) => setClientId(e.target.value)} style={selectStyle}>
                   <option value="">Sem cliente</option>
-                  {clients.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
+                  {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
-
               {isPrivileged && (
                 <div>
-                  <label className="block text-xs text-neutral-500 mb-1">Responsável</label>
-                  <select
-                    value={assigneeId}
-                    onChange={(e) => setAssigneeId(e.target.value)}
-                    className="w-full h-8 text-sm bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none"
-                  >
+                  <label style={labelStyle}>Responsável</label>
+                  <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} style={selectStyle}>
                     <option value="">Sem responsável</option>
-                    {users.map((u) => (
-                      <option key={u.id} value={u.id}>{u.name}</option>
-                    ))}
+                    {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
                   </select>
                 </div>
               )}
 
               {/* Labels */}
               <div>
-                <label className="block text-xs text-neutral-500 mb-1.5">Etiquetas</label>
-                <div className="flex flex-wrap gap-1 mb-2">
+                <label style={labelStyle}>Etiquetas</label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 }}>
                   {labels.map((label, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded"
-                      style={{ backgroundColor: label.color + "33", border: `1px solid ${label.color}55`, color: label.color }}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        fontSize: 10.5,
+                        padding: "3px 7px",
+                        borderRadius: 20,
+                        backgroundColor: label.color + "33",
+                        border: `1px solid ${label.color}55`,
+                        color: label.color,
+                        fontWeight: 700,
+                      }}
                     >
                       {label.name}
-                      <button onClick={() => removeLabel(idx)} className="hover:opacity-70">
-                        <X className="w-2.5 h-2.5" />
+                      <button onClick={() => removeLabel(idx)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit", opacity: 0.8, lineHeight: 1 }}>
+                        <X style={{ width: 10, height: 10 }} />
                       </button>
                     </span>
                   ))}
                 </div>
-                <div className="flex gap-1">
+                <div style={{ display: "flex", gap: 4 }}>
                   <input
                     value={newLabelName}
                     onChange={(e) => setNewLabelName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addLabel())}
                     placeholder="Nova etiqueta"
-                    className="flex-1 h-7 text-xs bg-neutral-800 border border-neutral-700 text-neutral-300 rounded-md px-2 placeholder:text-neutral-600 focus:outline-none"
+                    style={{
+                      flex: 1,
+                      height: 28,
+                      fontSize: 12,
+                      background: "#0f1813",
+                      border: "1px solid #1f2a23",
+                      color: "#a8b3aa",
+                      borderRadius: 6,
+                      padding: "0 8px",
+                      outline: "none",
+                    }}
                   />
                   <button
                     onClick={addLabel}
-                    className="h-7 px-2 bg-neutral-700 hover:bg-neutral-600 text-white rounded-md transition-colors"
+                    style={{
+                      height: 28,
+                      width: 28,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "#182219",
+                      border: "1px solid #1f2a23",
+                      color: "#7DC128",
+                      borderRadius: 6,
+                      cursor: "pointer",
+                    }}
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus style={{ width: 12, height: 12 }} />
                   </button>
                 </div>
-                <div className="flex gap-1 mt-1.5 flex-wrap">
+                <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
                   {PRESET_COLORS.map((c) => (
                     <button
                       key={c}
                       onClick={() => setNewLabelColor(c)}
-                      className={cn(
-                        "w-5 h-5 rounded-full transition-transform",
-                        newLabelColor === c ? "scale-125 ring-2 ring-white ring-offset-1 ring-offset-neutral-800" : "hover:scale-110"
-                      )}
-                      style={{ backgroundColor: c }}
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: "50%",
+                        backgroundColor: c,
+                        border: newLabelColor === c ? "2px solid #fff" : "2px solid transparent",
+                        cursor: "pointer",
+                        transform: newLabelColor === c ? "scale(1.2)" : "scale(1)",
+                        transition: "transform .1s",
+                        padding: 0,
+                      }}
                     />
                   ))}
                 </div>
@@ -308,17 +377,35 @@ export function TaskModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-neutral-800 flex-shrink-0">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, padding: "14px 20px", borderTop: "1px solid #1f2a23", flexShrink: 0 }}>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-neutral-400 hover:text-white transition-colors"
+            style={{
+              border: "1px solid #1f2a23",
+              color: "#a8b3aa",
+              background: "#0f1813",
+              fontSize: 13,
+              padding: "8px 14px",
+              borderRadius: 8,
+              cursor: "pointer",
+            }}
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+            style={{
+              background: saving ? "#4a6a1a" : "#7DC128",
+              color: "#0a1408",
+              fontSize: 13,
+              padding: "9px 16px",
+              borderRadius: 8,
+              fontWeight: 700,
+              border: "none",
+              cursor: saving ? "not-allowed" : "pointer",
+              opacity: saving ? 0.8 : 1,
+            }}
           >
             {saving ? "Salvando..." : (task ? "Atualizar" : "Criar Tarefa")}
           </button>

@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import { TaskCard } from "./task-card";
 import type { TaskWithRelations, UserSummary } from "@/types";
@@ -14,10 +13,10 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
 };
 
 const STATUS_DOT_COLORS: Record<TaskStatus, string> = {
-  TODO: "bg-neutral-400",
-  IN_PROGRESS: "bg-blue-400",
-  DONE: "bg-green-400",
-  BLOCKED: "bg-red-400",
+  TODO: "#6e7a70",
+  IN_PROGRESS: "#7DC128",
+  DONE: "#9be03a",
+  BLOCKED: "#d85a4a",
 };
 
 interface TaskColumnProps {
@@ -30,20 +29,59 @@ interface TaskColumnProps {
 
 export function TaskColumn({ status, tasks, currentUser, onTaskClick, onNewTask }: TaskColumnProps) {
   return (
-    <div className="flex flex-col bg-neutral-900 border border-neutral-800 rounded-xl min-w-[280px] flex-1 max-h-[calc(100vh-200px)]">
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      background: "#111a14",
+      border: "1px solid #1f2a23",
+      borderRadius: 10,
+      minWidth: 280,
+      flex: 1,
+      maxHeight: "calc(100vh - 200px)",
+    }}>
       {/* Column header */}
-      <div className="flex items-center justify-between px-3 py-3 border-b border-neutral-800 flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <div className={cn("w-2 h-2 rounded-full", STATUS_DOT_COLORS[status])} />
-          <span className="text-sm font-medium text-white">{STATUS_LABELS[status]}</span>
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "12px 14px",
+        borderBottom: "1px solid #1f2a23",
+        flexShrink: 0,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            background: STATUS_DOT_COLORS[status],
+            flexShrink: 0,
+          }} />
+          <span style={{
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: ".1em",
+            color: "#a8b3aa",
+          }}>
+            {STATUS_LABELS[status]}
+          </span>
         </div>
-        <span className="text-xs text-neutral-500 bg-neutral-800 px-1.5 py-0.5 rounded-full">
+        <span style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: "#7DC128",
+          background: "rgba(125,193,40,0.1)",
+          padding: "2px 7px",
+          borderRadius: 20,
+          fontFamily: "var(--font-mono)",
+          fontVariantNumeric: "tabular-nums",
+        }}>
           {tasks.length}
         </span>
       </div>
 
       {/* Cards */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-[80px]">
+      <div style={{ flex: 1, overflowY: "auto", padding: 8, display: "flex", flexDirection: "column", gap: 8, minHeight: 80 }}>
         {tasks.map((task) => (
           <TaskCard
             key={task.id}
@@ -53,19 +91,34 @@ export function TaskColumn({ status, tasks, currentUser, onTaskClick, onNewTask 
           />
         ))}
         {tasks.length === 0 && (
-          <div className="flex items-center justify-center h-20 text-neutral-600 text-xs">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 80, color: "#4a5450", fontSize: 12 }}>
             Nenhuma tarefa
           </div>
         )}
       </div>
 
       {/* Add task button */}
-      <div className="p-2 border-t border-neutral-800 flex-shrink-0">
+      <div style={{ padding: 8, borderTop: "1px solid #1f2a23", flexShrink: 0 }}>
         <button
           onClick={() => onNewTask(status)}
-          className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 rounded-md transition-colors"
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "6px 8px",
+            fontSize: 12,
+            color: "#6e7a70",
+            background: "transparent",
+            border: "1px dashed #1f2a23",
+            borderRadius: 6,
+            cursor: "pointer",
+            transition: "all .15s",
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.color = "#7DC128"; e.currentTarget.style.borderColor = "rgba(125,193,40,0.3)"; e.currentTarget.style.background = "rgba(125,193,40,0.04)"; }}
+          onMouseOut={(e) => { e.currentTarget.style.color = "#6e7a70"; e.currentTarget.style.borderColor = "#1f2a23"; e.currentTarget.style.background = "transparent"; }}
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus style={{ width: 13, height: 13 }} />
           Nova Tarefa
         </button>
       </div>

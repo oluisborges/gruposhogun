@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { initials } from "@/lib/formatting";
 
 interface ProfileFormProps {
   user: {
@@ -29,16 +26,36 @@ const TAG_LABELS: Record<string, string> = {
   GENERICA: "Genérica",
 };
 
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  borderRadius: 8,
+  color: "#e6efe8",
+  fontSize: 13,
+  padding: "9px 14px",
+  outline: "none",
+  boxSizing: "border-box",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: ".12em",
+  color: "#6e7a70",
+  marginBottom: 6,
+};
+
 export function ProfileForm({ user }: ProfileFormProps) {
   const { toast } = useToast();
 
-  // Personal data section
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [infoError, setInfoError] = useState<string | null>(null);
   const [infoLoading, setInfoLoading] = useState(false);
 
-  // Password section
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -114,21 +131,32 @@ export function ProfileForm({ user }: ProfileFormProps) {
   }
 
   return (
-    <div className="space-y-8">
+    <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 520 }}>
       {/* User info display */}
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-4 flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-          <span className="text-base font-bold text-red-400">
-            {user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
-          </span>
+      <div style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, padding: 20, display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{
+          width: 48,
+          height: 48,
+          borderRadius: 10,
+          background: "linear-gradient(135deg, #244a32, #15301f)",
+          border: "1px solid #284d36",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 16,
+          fontWeight: 700,
+          color: "#9be03a",
+          flexShrink: 0,
+        }}>
+          {initials(user.name)}
         </div>
         <div>
-          <p className="font-semibold text-white">{user.name}</p>
-          <p className="text-sm text-neutral-400">{ROLE_LABELS[user.role] ?? user.role}</p>
+          <p style={{ fontWeight: 700, fontSize: 15, color: "#e6efe8" }}>{user.name}</p>
+          <p style={{ fontSize: 12, color: "#6e7a70", marginTop: 2 }}>{ROLE_LABELS[user.role] ?? user.role}</p>
           {user.tags.length > 0 && (
-            <div className="flex gap-1 mt-1">
+            <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
               {user.tags.map((tag) => (
-                <span key={tag} className="text-xs text-neutral-500">
+                <span key={tag} style={{ fontSize: 11, color: "#7DC128" }}>
                   {TAG_LABELS[tag] ?? tag}
                 </span>
               ))}
@@ -138,89 +166,141 @@ export function ProfileForm({ user }: ProfileFormProps) {
       </div>
 
       {/* Personal data */}
-      <section>
-        <h2 className="text-lg font-semibold text-white mb-4">Dados Pessoais</h2>
-        <form onSubmit={handleInfoSubmit} className="space-y-4">
+      <section style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, padding: 24 }}>
+        <div style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em", color: "#6e7a70", marginBottom: 4 }}>
+            Seção
+          </p>
+          <h2 style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 18,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: ".02em",
+            color: "#e6efe8",
+            margin: 0,
+          }}>
+            Dados Pessoais
+          </h2>
+        </div>
+        <form onSubmit={handleInfoSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {infoError && (
-            <div className="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">
+            <div style={{ background: "rgba(216,90,74,0.1)", border: "1px solid rgba(216,90,74,0.3)", color: "#d85a4a", fontSize: 13, padding: "10px 14px", borderRadius: 8 }}>
               {infoError}
             </div>
           )}
-          <div className="space-y-2">
-            <Label htmlFor="profile-name">Nome</Label>
-            <Input
-              id="profile-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+          <div>
+            <label style={labelStyle}>Nome</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="profile-email">Email</Label>
-            <Input
-              id="profile-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+          <div>
+            <label style={labelStyle}>Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputStyle} />
           </div>
-          <Button type="submit" disabled={infoLoading}>
-            {infoLoading ? "Salvando..." : "Salvar Dados"}
-          </Button>
+          <div>
+            <button
+              type="submit"
+              disabled={infoLoading}
+              style={{
+                background: infoLoading ? "#4a6a1a" : "#7DC128",
+                color: "#0a1408",
+                fontSize: 13,
+                padding: "9px 16px",
+                borderRadius: 8,
+                fontWeight: 700,
+                border: "none",
+                cursor: infoLoading ? "not-allowed" : "pointer",
+                opacity: infoLoading ? 0.8 : 1,
+              }}
+            >
+              {infoLoading ? "Salvando..." : "Salvar Dados"}
+            </button>
+          </div>
         </form>
       </section>
 
-      <Separator className="bg-neutral-800" />
+      {/* Divider */}
+      <div style={{ height: 1, background: "#1f2a23" }} />
 
       {/* Change password */}
-      <section>
-        <h2 className="text-lg font-semibold text-white mb-4">Alterar Senha</h2>
-        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+      <section style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, padding: 24 }}>
+        <div style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em", color: "#6e7a70", marginBottom: 4 }}>
+            Segurança
+          </p>
+          <h2 style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 18,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: ".02em",
+            color: "#e6efe8",
+            margin: 0,
+          }}>
+            Alterar Senha
+          </h2>
+        </div>
+        <form onSubmit={handlePasswordSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {passwordError && (
-            <div className="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">
+            <div style={{ background: "rgba(216,90,74,0.1)", border: "1px solid rgba(216,90,74,0.3)", color: "#d85a4a", fontSize: 13, padding: "10px 14px", borderRadius: 8 }}>
               {passwordError}
             </div>
           )}
-          <div className="space-y-2">
-            <Label htmlFor="current-password">Senha Atual</Label>
-            <Input
-              id="current-password"
+          <div>
+            <label style={labelStyle}>Senha Atual</label>
+            <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Sua senha atual"
               required
               autoComplete="current-password"
+              style={inputStyle}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="new-password">Nova Senha</Label>
-            <Input
-              id="new-password"
+          <div>
+            <label style={labelStyle}>Nova Senha</label>
+            <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Mínimo 6 caracteres"
               required
               autoComplete="new-password"
+              style={inputStyle}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-            <Input
-              id="confirm-password"
+          <div>
+            <label style={labelStyle}>Confirmar Nova Senha</label>
+            <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repita a nova senha"
               required
               autoComplete="new-password"
+              style={inputStyle}
             />
           </div>
-          <Button type="submit" disabled={passwordLoading}>
-            {passwordLoading ? "Alterando..." : "Alterar Senha"}
-          </Button>
+          <div>
+            <button
+              type="submit"
+              disabled={passwordLoading}
+              style={{
+                background: passwordLoading ? "#4a6a1a" : "#7DC128",
+                color: "#0a1408",
+                fontSize: 13,
+                padding: "9px 16px",
+                borderRadius: 8,
+                fontWeight: 700,
+                border: "none",
+                cursor: passwordLoading ? "not-allowed" : "pointer",
+                opacity: passwordLoading ? 0.8 : 1,
+              }}
+            >
+              {passwordLoading ? "Alterando..." : "Alterar Senha"}
+            </button>
+          </div>
         </form>
       </section>
     </div>

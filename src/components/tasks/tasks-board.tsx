@@ -7,8 +7,6 @@ import { TaskColumn } from "./task-column";
 import { TaskModal } from "./task-modal";
 import { TaskDetailPanel } from "./task-detail-panel";
 import { ManagerView } from "./manager-view";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import type { TaskWithRelations, UserSummary } from "@/types";
 import type { TaskStatus, TaskPriority } from "@prisma/client";
 
@@ -20,6 +18,18 @@ interface TasksBoardProps {
   clients: { id: string; name: string }[];
   users: UserSummary[];
 }
+
+const selectStyle: React.CSSProperties = {
+  height: 34,
+  fontSize: 13,
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  color: "#a8b3aa",
+  borderRadius: 8,
+  padding: "0 10px",
+  outline: "none",
+  cursor: "pointer",
+};
 
 export function TasksBoard({ tasks: initialTasks, currentUser, clients, users }: TasksBoardProps) {
   const router = useRouter();
@@ -39,7 +49,6 @@ export function TasksBoard({ tasks: initialTasks, currentUser, clients, users }:
 
   const handleRefresh = useCallback(() => {
     router.refresh();
-    // Re-fetch tasks from API to update local state
     fetch("/api/tasks")
       .then((r) => r.json())
       .then((data: TaskWithRelations[]) => setTasks(data))
@@ -78,65 +87,78 @@ export function TasksBoard({ tasks: initialTasks, currentUser, clients, users }:
   });
 
   return (
-    <div className="flex flex-col h-full min-h-0 space-y-4">
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, gap: 16 }}>
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-white">Tarefas</h1>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexShrink: 0 }}>
+        <h1 style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 32,
+          fontWeight: 700,
+          textTransform: "uppercase",
+          letterSpacing: ".02em",
+          color: "#e6efe8",
+          margin: 0,
+        }}>
+          Tarefas
+        </h1>
         <button
           onClick={() => {
             setModalDefaultStatus("TODO");
             setModalOpen(true);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            background: "#7DC128",
+            color: "#0a1408",
+            fontSize: 13,
+            padding: "9px 14px",
+            borderRadius: 8,
+            fontWeight: 700,
+            border: "none",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
         >
-          <Plus className="w-4 h-4" />
+          <Plus style={{ width: 14, height: 14 }} />
           Nova Tarefa
         </button>
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3 flex-shrink-0">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
-          <Input
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, flexShrink: 0 }}>
+        {/* Search */}
+        <div style={{ position: "relative" }}>
+          <Search style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 13, height: 13, color: "#4a5450", pointerEvents: "none" }} />
+          <input
             placeholder="Buscar tarefas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 h-8 text-sm bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 w-48"
+            style={{
+              ...selectStyle,
+              paddingLeft: 30,
+              paddingRight: 12,
+              width: 200,
+              color: "#e6efe8",
+            }}
           />
         </div>
 
         {isPrivileged && (
           <>
-            <select
-              value={filterAssigneeId}
-              onChange={(e) => setFilterAssigneeId(e.target.value)}
-              className="h-8 text-sm bg-neutral-900 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-neutral-600"
-            >
+            <select value={filterAssigneeId} onChange={(e) => setFilterAssigneeId(e.target.value)} style={selectStyle}>
               <option value="">Todos os responsáveis</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>{u.name}</option>
-              ))}
+              {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
             </select>
-
-            <select
-              value={filterClientId}
-              onChange={(e) => setFilterClientId(e.target.value)}
-              className="h-8 text-sm bg-neutral-900 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-neutral-600"
-            >
+            <select value={filterClientId} onChange={(e) => setFilterClientId(e.target.value)} style={selectStyle}>
               <option value="">Todos os clientes</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+              {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </>
         )}
 
-        <select
-          value={filterPriority}
-          onChange={(e) => setFilterPriority(e.target.value as TaskPriority | "")}
-          className="h-8 text-sm bg-neutral-900 border border-neutral-700 text-neutral-300 rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-neutral-600"
-        >
+        <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value as TaskPriority | "")} style={selectStyle}>
           <option value="">Todas as prioridades</option>
           <option value="URGENT">Urgente</option>
           <option value="HIGH">Alta</option>
@@ -145,36 +167,35 @@ export function TasksBoard({ tasks: initialTasks, currentUser, clients, users }:
         </select>
 
         {isPrivileged && (
-          <div className="flex items-center gap-1 ml-auto">
-            <button
-              onClick={() => setViewMode("all")}
-              className={cn(
-                "px-3 py-1.5 text-xs rounded-md font-medium transition-colors",
-                viewMode === "all"
-                  ? "bg-neutral-700 text-white"
-                  : "text-neutral-500 hover:text-neutral-300"
-              )}
-            >
-              Geral
-            </button>
-            <button
-              onClick={() => setViewMode("byManager")}
-              className={cn(
-                "px-3 py-1.5 text-xs rounded-md font-medium transition-colors",
-                viewMode === "byManager"
-                  ? "bg-neutral-700 text-white"
-                  : "text-neutral-500 hover:text-neutral-300"
-              )}
-            >
-              Por Gestor
-            </button>
+          <div style={{ display: "flex", alignItems: "center", marginLeft: "auto", background: "#0f1813", border: "1px solid #1f2a23", borderRadius: 8, padding: 3, gap: 2 }}>
+            {(["all", "byManager"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                style={{
+                  padding: "5px 12px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  borderRadius: 6,
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all .15s",
+                  background: viewMode === mode ? "#182219" : "transparent",
+                  color: viewMode === mode ? "#e6efe8" : "#6e7a70",
+                  textTransform: "uppercase",
+                  letterSpacing: ".06em",
+                }}
+              >
+                {mode === "all" ? "Geral" : "Por Gestor"}
+              </button>
+            ))}
           </div>
         )}
       </div>
 
       {/* Board area */}
       {isPrivileged && viewMode === "byManager" ? (
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
           <ManagerView
             tasks={filteredTasks}
             currentUser={currentUser}
@@ -183,7 +204,7 @@ export function TasksBoard({ tasks: initialTasks, currentUser, clients, users }:
           />
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4 flex-1 min-h-0">
+        <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, flex: 1, minHeight: 0 }}>
           {STATUSES.map((status) => (
             <TaskColumn
               key={status}

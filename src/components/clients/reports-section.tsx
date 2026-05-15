@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import { Copy, Trash2, Check } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { GenerateReportModal } from "@/components/reports/generate-report-modal";
-// Button imported transitively via GenerateReportModal
 import { formatBRTDate } from "@/lib/date-utils";
 import type { Report, User, ReportType, Role, MetaAccount } from "@prisma/client";
 
@@ -23,10 +21,10 @@ const REPORT_TYPE_LABELS: Record<ReportType, string> = {
   CUSTOM: "Personalizado",
 };
 
-const REPORT_TYPE_VARIANTS: Record<ReportType, "default" | "secondary" | "warning"> = {
-  WEEKLY: "default",
-  MONTHLY: "warning",
-  CUSTOM: "secondary",
+const REPORT_TYPE_COLORS: Record<ReportType, { bg: string; text: string }> = {
+  WEEKLY: { bg: "rgba(125,193,40,0.1)", text: "#7DC128" },
+  MONTHLY: { bg: "rgba(155,224,58,0.1)", text: "#9be03a" },
+  CUSTOM: { bg: "rgba(232,167,58,0.1)", text: "#e8a73a" },
 };
 
 export function ReportsSection({ clientId, reports: initialReports, userRole, metaAccounts = [] }: ReportsSectionProps) {
@@ -53,71 +51,108 @@ export function ReportsSection({ clientId, reports: initialReports, userRole, me
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-neutral-500">{reports.length} relatório(s) recentes</p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <p style={{ fontSize: 13, color: "#6e7a70" }}>{reports.length} relatório(s) recentes</p>
         <GenerateReportModal
           clientId={clientId}
           accounts={metaAccounts}
           onGenerated={(report) => {
-            // Add to list (cast to include generatedBy placeholder)
             setReports((prev) => [{ ...report, generatedBy: { name: "Você" } as User }, ...prev]);
           }}
         />
       </div>
 
       {reports.length === 0 ? (
-        <p className="text-sm text-neutral-500 italic">Nenhum relatório gerado ainda</p>
+        <p style={{ fontSize: 13, color: "#4a5450", fontStyle: "italic" }}>Nenhum relatório gerado ainda</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr className="border-b border-neutral-800">
-                <th className="text-left py-2 text-xs text-neutral-500 font-medium">Tipo</th>
-                <th className="text-left py-2 text-xs text-neutral-500 font-medium">Período</th>
-                <th className="text-left py-2 text-xs text-neutral-500 font-medium">Gerador</th>
-                <th className="text-left py-2 text-xs text-neutral-500 font-medium">Criado em</th>
-                <th className="text-right py-2 text-xs text-neutral-500 font-medium">Ações</th>
+              <tr style={{ borderBottom: "1px solid #1f2a23" }}>
+                {["Tipo", "Período", "Gerador", "Criado em", "Ações"].map((h, i) => (
+                  <th
+                    key={h}
+                    style={{
+                      padding: "10px 12px",
+                      textAlign: i === 4 ? "right" : "left",
+                      fontSize: 11,
+                      textTransform: "uppercase",
+                      letterSpacing: ".1em",
+                      color: "#6e7a70",
+                      fontWeight: 700,
+                      paddingBottom: 10,
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {reports.map((report) => (
-                <tr key={report.id} className="border-b border-neutral-800/40 hover:bg-neutral-800/20 transition-colors">
-                  <td className="py-2.5 pr-4">
-                    <Badge variant={REPORT_TYPE_VARIANTS[report.type]}>
+              {reports.map((report, idx) => (
+                <tr
+                  key={report.id}
+                  style={{ borderBottom: idx < reports.length - 1 ? "1px dashed #1f2a23" : "none" }}
+                >
+                  <td style={{ padding: "10px 12px" }}>
+                    <span style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      padding: "3px 8px",
+                      borderRadius: 20,
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      letterSpacing: ".06em",
+                      textTransform: "uppercase",
+                      background: REPORT_TYPE_COLORS[report.type].bg,
+                      color: REPORT_TYPE_COLORS[report.type].text,
+                    }}>
                       {REPORT_TYPE_LABELS[report.type]}
-                    </Badge>
+                    </span>
                   </td>
-                  <td className="py-2.5 pr-4 text-neutral-400 whitespace-nowrap">
+                  <td style={{ padding: "10px 12px", color: "#a8b3aa", fontSize: 13, whiteSpace: "nowrap", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
                     {formatBRTDate(report.periodStart)} — {formatBRTDate(report.periodEnd)}
                   </td>
-                  <td className="py-2.5 pr-4 text-neutral-400">
+                  <td style={{ padding: "10px 12px", color: "#a8b3aa", fontSize: 13 }}>
                     {report.generatedBy.name}
                   </td>
-                  <td className="py-2.5 pr-4 text-neutral-500 whitespace-nowrap">
+                  <td style={{ padding: "10px 12px", color: "#6e7a70", fontSize: 13, whiteSpace: "nowrap", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
                     {formatBRTDate(report.createdAt)}
                   </td>
-                  <td className="py-2.5">
-                    <div className="flex items-center justify-end gap-1">
+                  <td style={{ padding: "10px 12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4 }}>
                       <button
                         onClick={() => handleCopy(report)}
-                        className="p-1.5 rounded text-neutral-500 hover:text-white hover:bg-neutral-700 transition-colors"
                         title="Copiar conteúdo"
+                        style={{ padding: 6, borderRadius: 6, background: "transparent", border: "none", color: copiedId === report.id ? "#7DC128" : "#4a5450", cursor: "pointer" }}
+                        onMouseOver={(e) => { if (copiedId !== report.id) e.currentTarget.style.color = "#a8b3aa"; }}
+                        onMouseOut={(e) => { if (copiedId !== report.id) e.currentTarget.style.color = "#4a5450"; }}
                       >
                         {copiedId === report.id ? (
-                          <Check className="w-3.5 h-3.5 text-green-400" />
+                          <Check style={{ width: 13, height: 13 }} />
                         ) : (
-                          <Copy className="w-3.5 h-3.5" />
+                          <Copy style={{ width: 13, height: 13 }} />
                         )}
                       </button>
                       {canEdit && (
                         <button
                           onClick={() => handleDelete(report.id)}
                           disabled={deletingId === report.id}
-                          className="p-1.5 rounded text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors disabled:opacity-50"
                           title="Remover"
+                          style={{
+                            padding: 6,
+                            borderRadius: 6,
+                            background: "transparent",
+                            border: "none",
+                            color: "#4a5450",
+                            cursor: deletingId === report.id ? "not-allowed" : "pointer",
+                            opacity: deletingId === report.id ? 0.5 : 1,
+                          }}
+                          onMouseOver={(e) => (e.currentTarget.style.color = "#d85a4a")}
+                          onMouseOut={(e) => (e.currentTarget.style.color = "#4a5450")}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 style={{ width: 13, height: 13 }} />
                         </button>
                       )}
                     </div>
