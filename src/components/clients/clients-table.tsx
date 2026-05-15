@@ -11,25 +11,33 @@ import {
   Plus,
   Search,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ClientFormModal } from "@/components/clients/client-form-modal";
-import { cn } from "@/lib/utils";
 import { initials } from "@/lib/formatting";
 import type { ClientTag, Role } from "@prisma/client";
 import type { ClientListItem } from "@/types/index";
 
-const TAG_COLORS: Record<ClientTag, string> = {
-  MARMITARIA: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  DELIVERY: "bg-red-500/10 text-red-400 border-red-500/20",
-  GENERICA: "bg-neutral-500/10 text-neutral-400 border-neutral-500/20",
+const TAG_COLORS: Record<ClientTag, { bg: string; text: string }> = {
+  MARMITARIA: { bg: "rgba(232,167,58,0.1)", text: "#e8a73a" },
+  DELIVERY: { bg: "rgba(216,90,74,0.1)", text: "#d85a4a" },
+  GENERICA: { bg: "rgba(125,193,40,0.1)", text: "#7DC128" },
 };
 
 const TAG_LABELS: Record<ClientTag, string> = {
   MARMITARIA: "Marmitaria",
   DELIVERY: "Delivery",
   GENERICA: "Genérica",
+};
+
+const AVATAR_BG: Record<ClientTag, string> = {
+  MARMITARIA: "linear-gradient(135deg, #4a2a00, #2d1800)",
+  DELIVERY: "linear-gradient(135deg, #3d1a14, #240f0a)",
+  GENERICA: "linear-gradient(135deg, #244a32, #15301f)",
+};
+
+const AVATAR_TEXT: Record<ClientTag, string> = {
+  MARMITARIA: "#e8a73a",
+  DELIVERY: "#d85a4a",
+  GENERICA: "#9be03a",
 };
 
 interface ClientsTableProps {
@@ -83,187 +91,366 @@ export function ClientsTable({ clients, userRole, userId }: ClientsTableProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-3 flex-1">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-            <Input
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", flex: 1 }}>
+          {/* Search */}
+          <div style={{ position: "relative", flex: "1 1 220px", maxWidth: 320 }}>
+            <Search style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "#4a5450", pointerEvents: "none" }} />
+            <input
               placeholder="Buscar clientes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-500"
+              style={{
+                width: "100%",
+                paddingLeft: 32,
+                paddingRight: 12,
+                paddingTop: 9,
+                paddingBottom: 9,
+                background: "#0f1813",
+                border: "1px solid #1f2a23",
+                borderRadius: 8,
+                color: "#e6efe8",
+                fontSize: 13,
+                outline: "none",
+              }}
             />
           </div>
 
           {/* Tag filter */}
-          <div className="flex gap-2">
-            {(["ALL", "MARMITARIA", "DELIVERY", "GENERICA"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTagFilter(t)}
-                className={cn(
-                  "px-3 py-1.5 rounded-md text-xs font-medium border transition-colors",
-                  tagFilter === t
-                    ? "bg-red-500/20 text-red-400 border-red-500/30"
-                    : "bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-700"
-                )}
-              >
-                {t === "ALL" ? "Todos" : TAG_LABELS[t]}
-              </button>
-            ))}
+          <div style={{ display: "flex", gap: 6 }}>
+            {(["ALL", "MARMITARIA", "DELIVERY", "GENERICA"] as const).map((t) => {
+              const active = tagFilter === t;
+              const color = t !== "ALL" ? TAG_COLORS[t] : null;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTagFilter(t)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: 20,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: ".06em",
+                    textTransform: "uppercase",
+                    border: active
+                      ? `1px solid ${color ? color.text + "55" : "#28342a"}`
+                      : "1px solid #1f2a23",
+                    background: active
+                      ? (color ? color.bg : "rgba(125,193,40,0.1)")
+                      : "#0f1813",
+                    color: active
+                      ? (color ? color.text : "#7DC128")
+                      : "#6e7a70",
+                    cursor: "pointer",
+                    transition: "all .15s",
+                  }}
+                >
+                  {t === "ALL" ? "Todos" : TAG_LABELS[t]}
+                </button>
+              );
+            })}
           </div>
 
           {/* Archive toggle */}
           <button
             onClick={() => setShowArchived(!showArchived)}
-            className={cn(
-              "px-3 py-1.5 rounded-md text-xs font-medium border transition-colors flex items-center gap-1.5",
-              showArchived
-                ? "bg-neutral-700/50 text-neutral-300 border-neutral-600"
-                : "bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-700"
-            )}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "4px 10px",
+              borderRadius: 20,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: ".06em",
+              textTransform: "uppercase",
+              border: showArchived ? "1px solid #28342a" : "1px solid #1f2a23",
+              background: showArchived ? "rgba(125,193,40,0.08)" : "#0f1813",
+              color: showArchived ? "#a8b3aa" : "#6e7a70",
+              cursor: "pointer",
+            }}
           >
-            <Archive className="w-3.5 h-3.5" />
+            <Archive style={{ width: 12, height: 12 }} />
             Arquivados
           </button>
         </div>
 
         {canEdit && (
-          <Button
+          <button
             onClick={() => setCreateModalOpen(true)}
-            className="bg-red-500 hover:bg-red-600 text-white gap-2"
-            size="sm"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "#7DC128",
+              color: "#0a1408",
+              fontSize: 13,
+              padding: "9px 14px",
+              borderRadius: 8,
+              fontWeight: 700,
+              border: "none",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
           >
-            <Plus className="w-4 h-4" />
+            <Plus style={{ width: 14, height: 14 }} />
             Novo Cliente
-          </Button>
+          </button>
         )}
       </div>
 
       {/* Table */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      <div style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, overflow: "hidden" }}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr className="border-b border-neutral-800">
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Nome</th>
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Tag</th>
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Gestores</th>
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Relatórios</th>
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Status</th>
-                {canEdit && (
-                  <th className="text-right px-4 py-3 text-neutral-400 font-medium">Ações</th>
-                )}
+              <tr style={{ borderBottom: "1px solid #1f2a23" }}>
+                {["Nome", "Tag", "Gestores", "Relatórios", "Status", ...(canEdit ? ["Ações"] : [])].map((h, i) => (
+                  <th
+                    key={h}
+                    style={{
+                      padding: "10px 16px",
+                      textAlign: i === (canEdit ? 5 : 4) ? "right" : "left",
+                      fontSize: 11,
+                      textTransform: "uppercase",
+                      letterSpacing: ".1em",
+                      color: "#6e7a70",
+                      fontWeight: 700,
+                      paddingBottom: 10,
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={canEdit ? 6 : 5} className="px-4 py-8 text-center text-neutral-500">
-                    Nenhum cliente encontrado
+                  <td
+                    colSpan={canEdit ? 6 : 5}
+                    style={{ padding: "48px 16px", textAlign: "center", color: "#6e7a70", fontSize: 13 }}
+                  >
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                      <Search style={{ width: 24, height: 24, opacity: 0.4 }} />
+                      Nenhum cliente encontrado
+                    </div>
                   </td>
                 </tr>
               ) : (
-                filtered.map((client) => (
+                filtered.map((client, idx) => (
                   <tr
                     key={client.id}
-                    className="border-b border-neutral-800/60 hover:bg-neutral-800/30 transition-colors"
+                    style={{
+                      borderBottom: idx < filtered.length - 1 ? "1px dashed #1f2a23" : "none",
+                    }}
                   >
                     {/* Nome */}
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/dashboard/clients/${client.id}`}
-                        className="font-medium text-white hover:text-red-400 transition-colors"
-                      >
-                        {client.name}
-                      </Link>
-                      {client.contactName && (
-                        <p className="text-xs text-neutral-500 mt-0.5">{client.contactName}</p>
-                      )}
+                    <td style={{ padding: "12px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 8,
+                            background: AVATAR_BG[client.tag],
+                            border: "1px solid #284d36",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: AVATAR_TEXT[client.tag],
+                          }}
+                        >
+                          {initials(client.name)}
+                        </div>
+                        <div>
+                          <Link
+                            href={`/dashboard/clients/${client.id}`}
+                            style={{ fontWeight: 600, color: "#e6efe8", fontSize: 13, textDecoration: "none" }}
+                          >
+                            {client.name}
+                          </Link>
+                          {client.contactName && (
+                            <p style={{ fontSize: 11, color: "#6e7a70", marginTop: 1 }}>{client.contactName}</p>
+                          )}
+                        </div>
+                      </div>
                     </td>
 
                     {/* Tag */}
-                    <td className="px-4 py-3">
+                    <td style={{ padding: "12px 16px" }}>
                       <span
-                        className={cn(
-                          "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold",
-                          TAG_COLORS[client.tag]
-                        )}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          padding: "3px 8px",
+                          borderRadius: 20,
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          letterSpacing: ".06em",
+                          textTransform: "uppercase",
+                          background: TAG_COLORS[client.tag].bg,
+                          color: TAG_COLORS[client.tag].text,
+                        }}
                       >
                         {TAG_LABELS[client.tag]}
                       </span>
                     </td>
 
                     {/* Gestores */}
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
+                    <td style={{ padding: "12px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                         {client.managers.slice(0, 3).map((m) => (
                           <div
                             key={m.userId}
                             title={m.user.name}
-                            className="w-6 h-6 rounded-full bg-neutral-700 flex items-center justify-center text-xs font-medium text-neutral-300 flex-shrink-0"
+                            style={{
+                              width: 26,
+                              height: 26,
+                              borderRadius: 8,
+                              background: "linear-gradient(135deg, #244a32, #15301f)",
+                              border: "1px solid #284d36",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 10,
+                              fontWeight: 700,
+                              color: "#9be03a",
+                              flexShrink: 0,
+                            }}
                           >
                             {initials(m.user.name)}
                           </div>
                         ))}
                         {client.managers.length > 3 && (
-                          <span className="text-xs text-neutral-500 ml-1">
+                          <span style={{ fontSize: 11, color: "#6e7a70", marginLeft: 2 }}>
                             +{client.managers.length - 3}
                           </span>
                         )}
                         {client.managers.length === 0 && (
-                          <span className="text-xs text-neutral-600">—</span>
+                          <span style={{ fontSize: 13, color: "#4a5450" }}>—</span>
                         )}
                       </div>
                     </td>
 
                     {/* Relatórios */}
-                    <td className="px-4 py-3">
-                      <Badge variant="secondary">{client._count.reports}</Badge>
+                    <td style={{ padding: "12px 16px" }}>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          padding: "3px 8px",
+                          borderRadius: 20,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          background: "#182219",
+                          color: "#6e7a70",
+                          fontFamily: "var(--font-mono)",
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
+                        {client._count.reports}
+                      </span>
                     </td>
 
                     {/* Status */}
-                    <td className="px-4 py-3">
+                    <td style={{ padding: "12px 16px" }}>
                       {client.active ? (
-                        <Badge variant="success">Ativo</Badge>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            padding: "3px 8px",
+                            borderRadius: 20,
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            letterSpacing: ".06em",
+                            textTransform: "uppercase",
+                            background: "rgba(125,193,40,0.1)",
+                            color: "#7DC128",
+                          }}
+                        >
+                          Ativo
+                        </span>
                       ) : (
-                        <Badge variant="outline">Arquivado</Badge>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            padding: "3px 8px",
+                            borderRadius: 20,
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            letterSpacing: ".06em",
+                            textTransform: "uppercase",
+                            background: "#182219",
+                            color: "#6e7a70",
+                          }}
+                        >
+                          Arquivado
+                        </span>
                       )}
                     </td>
 
                     {/* Ações */}
                     {canEdit && (
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-1">
+                      <td style={{ padding: "12px 16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4 }}>
                           <button
                             onClick={() => setEditClient(client)}
-                            className="p-1.5 rounded text-neutral-500 hover:text-white hover:bg-neutral-700 transition-colors"
                             title="Editar"
+                            style={{
+                              padding: 6,
+                              borderRadius: 6,
+                              background: "transparent",
+                              border: "none",
+                              color: "#4a5450",
+                              cursor: "pointer",
+                            }}
                           >
-                            <Pencil className="w-3.5 h-3.5" />
+                            <Pencil style={{ width: 13, height: 13 }} />
                           </button>
                           <button
                             onClick={() => handleArchive(client)}
                             disabled={archivingId === client.id}
-                            className="p-1.5 rounded text-neutral-500 hover:text-yellow-400 hover:bg-neutral-700 transition-colors disabled:opacity-50"
                             title={client.active ? "Arquivar" : "Desarquivar"}
+                            style={{
+                              padding: 6,
+                              borderRadius: 6,
+                              background: "transparent",
+                              border: "none",
+                              color: "#4a5450",
+                              cursor: "pointer",
+                              opacity: archivingId === client.id ? 0.5 : 1,
+                            }}
                           >
                             {client.active ? (
-                              <Archive className="w-3.5 h-3.5" />
+                              <Archive style={{ width: 13, height: 13 }} />
                             ) : (
-                              <ArchiveRestore className="w-3.5 h-3.5" />
+                              <ArchiveRestore style={{ width: 13, height: 13 }} />
                             )}
                           </button>
                           {canDelete && (
                             <button
                               onClick={() => handleDelete(client)}
                               disabled={deletingId === client.id}
-                              className="p-1.5 rounded text-neutral-500 hover:text-red-400 hover:bg-neutral-700 transition-colors disabled:opacity-50"
                               title="Deletar"
+                              style={{
+                                padding: 6,
+                                borderRadius: 6,
+                                background: "transparent",
+                                border: "none",
+                                color: "#4a5450",
+                                cursor: "pointer",
+                                opacity: deletingId === client.id ? 0.5 : 1,
+                              }}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 style={{ width: 13, height: 13 }} />
                             </button>
                           )}
                         </div>

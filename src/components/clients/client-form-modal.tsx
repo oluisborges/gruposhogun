@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { ClientTag } from "@prisma/client";
 import type { UserSummary } from "@/types/index";
@@ -14,6 +11,12 @@ const TAG_OPTIONS: { value: ClientTag; label: string }[] = [
   { value: "DELIVERY", label: "Delivery" },
   { value: "GENERICA", label: "Genérica" },
 ];
+
+const TAG_ACTIVE_STYLE: Record<ClientTag, { bg: string; color: string; border: string }> = {
+  MARMITARIA: { bg: "rgba(232,167,58,0.12)", color: "#e8a73a", border: "rgba(232,167,58,0.3)" },
+  DELIVERY: { bg: "rgba(216,90,74,0.12)", color: "#d85a4a", border: "rgba(216,90,74,0.3)" },
+  GENERICA: { bg: "rgba(125,193,40,0.12)", color: "#7DC128", border: "rgba(125,193,40,0.3)" },
+};
 
 // Minimal client shape needed by the form
 interface ClientFormData {
@@ -34,6 +37,28 @@ interface ClientFormModalProps {
   client?: ClientFormData;
   onSuccess: () => void;
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  borderRadius: 8,
+  color: "#e6efe8",
+  fontSize: 13,
+  padding: "9px 14px",
+  outline: "none",
+  boxSizing: "border-box",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: ".12em",
+  color: "#6e7a70",
+  marginBottom: 6,
+};
 
 export function ClientFormModal({
   open,
@@ -131,144 +156,201 @@ export function ClientFormModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
         onClick={() => onOpenChange(false)}
       />
-      <div className="relative bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-neutral-800">
-          <h2 className="text-lg font-semibold text-white">
+      <div style={{
+        position: "relative",
+        background: "#141f18",
+        border: "1px solid #28342a",
+        borderRadius: 10,
+        width: "100%",
+        maxWidth: 480,
+        maxHeight: "90vh",
+        overflowY: "auto",
+        boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+      }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid #1f2a23" }}>
+          <h2 style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 20,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: ".02em",
+            color: "#e6efe8",
+            margin: 0,
+          }}>
             {client ? "Editar Cliente" : "Novo Cliente"}
           </h2>
           <button
             onClick={() => onOpenChange(false)}
-            className="p-1 rounded text-neutral-500 hover:text-white transition-colors"
+            style={{ padding: 6, background: "transparent", border: "none", color: "#6e7a70", cursor: "pointer", borderRadius: 6 }}
           >
-            <X className="w-5 h-5" />
+            <X style={{ width: 18, height: 18 }} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-3 py-2 rounded-md">
+            <div style={{ background: "rgba(216,90,74,0.1)", border: "1px solid rgba(216,90,74,0.3)", color: "#d85a4a", fontSize: 13, padding: "10px 14px", borderRadius: 8 }}>
               {error}
             </div>
           )}
 
           {/* Nome */}
-          <div className="space-y-1.5">
-            <Label className="text-neutral-300">Nome *</Label>
-            <Input
+          <div>
+            <label style={labelStyle}>Nome *</label>
+            <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nome do cliente"
-              className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
+              style={inputStyle}
               required
             />
           </div>
 
           {/* Tag */}
-          <div className="space-y-1.5">
-            <Label className="text-neutral-300">Segmento</Label>
-            <div className="flex gap-2">
-              {TAG_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setTag(opt.value)}
-                  className={cn(
-                    "flex-1 py-2 text-xs font-medium rounded-md border transition-colors",
-                    tag === opt.value
-                      ? "bg-red-500/20 text-red-400 border-red-500/30"
-                      : "bg-neutral-800 text-neutral-400 border-neutral-700 hover:border-neutral-600"
-                  )}
-                >
-                  {opt.label}
-                </button>
-              ))}
+          <div>
+            <label style={labelStyle}>Segmento</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              {TAG_OPTIONS.map((opt) => {
+                const active = tag === opt.value;
+                const s = TAG_ACTIVE_STYLE[opt.value];
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setTag(opt.value)}
+                    style={{
+                      flex: 1,
+                      padding: "8px 4px",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      borderRadius: 8,
+                      border: active ? `1px solid ${s.border}` : "1px solid #1f2a23",
+                      background: active ? s.bg : "#0f1813",
+                      color: active ? s.color : "#6e7a70",
+                      cursor: "pointer",
+                      transition: "all .15s",
+                      letterSpacing: ".04em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Contact */}
-          <div className="space-y-3">
-            <Label className="text-neutral-300">Contato</Label>
-            <Input
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <label style={labelStyle}>Contato</label>
+            <input
               value={contactName}
               onChange={(e) => setContactName(e.target.value)}
               placeholder="Nome do contato"
-              className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
+              style={inputStyle}
             />
-            <Input
+            <input
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
               placeholder="Telefone"
-              className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
+              style={inputStyle}
             />
-            <Input
+            <input
               value={contactEmail}
               onChange={(e) => setContactEmail(e.target.value)}
               placeholder="E-mail"
               type="email"
-              className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
+              style={inputStyle}
             />
           </div>
 
           {/* PIX */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <button
                 type="button"
                 role="switch"
                 aria-checked={usesPix}
                 onClick={() => setUsesPix(!usesPix)}
-                className={cn(
-                  "relative inline-flex h-5 w-9 items-center rounded-full border-2 transition-colors",
-                  usesPix ? "bg-red-500 border-red-500" : "bg-neutral-700 border-neutral-700"
-                )}
+                style={{
+                  position: "relative",
+                  display: "inline-flex",
+                  height: 20,
+                  width: 36,
+                  alignItems: "center",
+                  borderRadius: 10,
+                  border: "2px solid",
+                  borderColor: usesPix ? "#7DC128" : "#1f2a23",
+                  background: usesPix ? "#7DC128" : "#182219",
+                  cursor: "pointer",
+                  transition: "all .2s",
+                  padding: 0,
+                }}
               >
                 <span
-                  className={cn(
-                    "inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform",
-                    usesPix ? "translate-x-4" : "translate-x-0.5"
-                  )}
+                  style={{
+                    display: "inline-block",
+                    height: 14,
+                    width: 14,
+                    borderRadius: "50%",
+                    background: "#fff",
+                    transform: usesPix ? "translateX(16px)" : "translateX(2px)",
+                    transition: "transform .2s",
+                  }}
                 />
               </button>
-              <Label className="text-neutral-300 cursor-pointer" onClick={() => setUsesPix(!usesPix)}>
+              <label
+                style={{ fontSize: 13, color: "#a8b3aa", cursor: "pointer" }}
+                onClick={() => setUsesPix(!usesPix)}
+              >
                 Usa PIX semanal
-              </Label>
+              </label>
             </div>
             {usesPix && (
-              <Input
+              <input
                 value={pixValue}
                 onChange={(e) => setPixValue(e.target.value)}
                 placeholder="Valor PIX (R$)"
                 type="number"
                 step="0.01"
                 min="0"
-                className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
+                style={inputStyle}
               />
             )}
           </div>
 
           {/* Managers */}
           {managers.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-neutral-300">Gestores</Label>
-              <div className="space-y-1 max-h-32 overflow-y-auto">
+            <div>
+              <label style={labelStyle}>Gestores</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, maxHeight: 140, overflowY: "auto" }}>
                 {managers.map((m) => (
                   <label
                     key={m.id}
-                    className="flex items-center gap-3 px-2 py-1.5 rounded cursor-pointer hover:bg-neutral-800 transition-colors"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "6px 8px",
+                      borderRadius: 6,
+                      cursor: "pointer",
+                      background: selectedManagerIds.includes(m.id) ? "rgba(125,193,40,0.08)" : "transparent",
+                    }}
                   >
                     <input
                       type="checkbox"
                       checked={selectedManagerIds.includes(m.id)}
                       onChange={() => toggleManager(m.id)}
-                      className="rounded border-neutral-700 bg-neutral-800 text-red-500 focus:ring-red-500/30"
+                      style={{ accentColor: "#7DC128" }}
                     />
-                    <span className="text-sm text-neutral-300">{m.name}</span>
-                    <span className="text-xs text-neutral-600 ml-auto">{m.email}</span>
+                    <span style={{ fontSize: 13, color: "#a8b3aa", flex: 1 }}>{m.name}</span>
+                    <span style={{ fontSize: 11, color: "#4a5450" }}>{m.email}</span>
                   </label>
                 ))}
               </div>
@@ -276,22 +358,39 @@ export function ClientFormModal({
           )}
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-2">
-            <Button
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 4 }}>
+            <button
               type="button"
-              variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="text-neutral-400 hover:text-white"
+              style={{
+                border: "1px solid #1f2a23",
+                color: "#a8b3aa",
+                background: "#0f1813",
+                fontSize: 13,
+                padding: "8px 14px",
+                borderRadius: 8,
+                cursor: "pointer",
+              }}
             >
               Cancelar
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
               disabled={loading}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              style={{
+                background: loading ? "#4a6a1a" : "#7DC128",
+                color: "#0a1408",
+                fontSize: 13,
+                padding: "9px 16px",
+                borderRadius: 8,
+                fontWeight: 700,
+                border: "none",
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.8 : 1,
+              }}
             >
               {loading ? "Salvando..." : client ? "Salvar" : "Criar Cliente"}
-            </Button>
+            </button>
           </div>
         </form>
       </div>

@@ -16,8 +16,6 @@ import {
   CalendarDays,
   Wallet,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ClientFormModal } from "@/components/clients/client-form-modal";
 import { BusinessInfoSection } from "@/components/clients/business-info-section";
 import { CustomSections } from "@/components/clients/custom-sections";
@@ -28,14 +26,13 @@ import { ReportsSection } from "@/components/clients/reports-section";
 import { ClientTasksSection } from "@/components/clients/client-tasks-section";
 import { formatBRTDate } from "@/lib/date-utils";
 import { formatBRL } from "@/lib/formatting";
-import { cn } from "@/lib/utils";
 import type { Role, ClientTag, MetaAccount, Report, User as PrismaUser, ClientSection, ClientAttachment, Task, TaskLabel, ClientManager, Prisma } from "@prisma/client";
 import type { UserSummary } from "@/types";
 
-const TAG_COLORS: Record<ClientTag, string> = {
-  MARMITARIA: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  DELIVERY: "bg-red-500/10 text-red-400 border-red-500/20",
-  GENERICA: "bg-neutral-500/10 text-neutral-400 border-neutral-500/20",
+const TAG_COLORS: Record<ClientTag, { bg: string; text: string }> = {
+  MARMITARIA: { bg: "rgba(232,167,58,0.1)", text: "#e8a73a" },
+  DELIVERY: { bg: "rgba(216,90,74,0.1)", text: "#d85a4a" },
+  GENERICA: { bg: "rgba(125,193,40,0.1)", text: "#7DC128" },
 };
 
 const TAG_LABELS: Record<ClientTag, string> = {
@@ -94,7 +91,6 @@ export function ClientPage({ client, userRole, userId, users = [] }: ClientPageP
 
   const canEdit = userRole === "OWNER" || userRole === "COORDINATOR";
 
-  // Intersection observer for nav highlight
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect();
 
@@ -131,31 +127,54 @@ export function ClientPage({ client, userRole, userId, users = [] }: ClientPageP
       : {}
   ) satisfies Record<string, string | undefined>;
 
-  // Safe meta accounts (strip tokenEncrypted from type perspective)
   const safeMetaAccounts = client.metaAccounts.map(({ tokenEncrypted: _ignored, ...rest }) => rest);
 
   return (
-    <div className="flex gap-6 max-w-screen-xl">
+    <div style={{ display: "flex", gap: 24, maxWidth: 1280, margin: "0 auto" }}>
       {/* Anchor Nav */}
-      <aside className="hidden lg:flex flex-col w-48 flex-shrink-0">
-        <nav className="sticky top-0 space-y-0.5 py-1">
+      <aside style={{
+        display: "none",
+        flexDirection: "column",
+        width: 200,
+        flexShrink: 0,
+      }}
+        className="lg:flex"
+      >
+        <nav style={{ position: "sticky", top: 0, paddingTop: 4, paddingBottom: 4 }}>
           <Link
             href="/dashboard/clients"
-            className="flex items-center gap-2 text-xs text-neutral-500 hover:text-white mb-4 transition-colors"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 12,
+              color: "#6e7a70",
+              marginBottom: 16,
+              textDecoration: "none",
+              transition: "color .15s",
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.color = "#a8b3aa")}
+            onMouseOut={(e) => (e.currentTarget.style.color = "#6e7a70")}
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft style={{ width: 14, height: 14 }} />
             Clientes
           </Link>
           {NAV_SECTIONS.map(({ id, label }) => (
             <a
               key={id}
               href={`#${id}`}
-              className={cn(
-                "block px-3 py-1.5 rounded-md text-xs transition-colors",
-                activeSection === id
-                  ? "bg-red-500/10 text-red-400 font-medium"
-                  : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50"
-              )}
+              style={{
+                display: "block",
+                padding: "6px 10px",
+                borderRadius: 6,
+                fontSize: 12,
+                textDecoration: "none",
+                marginBottom: 2,
+                transition: "all .15s",
+                background: activeSection === id ? "rgba(125,193,40,0.1)" : "transparent",
+                color: activeSection === id ? "#7DC128" : "#6e7a70",
+                fontWeight: activeSection === id ? 600 : 400,
+              }}
             >
               {label}
             </a>
@@ -164,50 +183,82 @@ export function ClientPage({ client, userRole, userId, users = [] }: ClientPageP
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 min-w-0 space-y-8">
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 32 }}>
         {/* Overview */}
-        <section id="overview" className="scroll-mt-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-2xl font-bold text-white">{client.name}</h1>
-                  <span
-                    className={cn(
-                      "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold",
-                      TAG_COLORS[client.tag]
-                    )}
-                  >
+        <section id="overview" style={{ scrollMarginTop: 16 }}>
+          <div style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, padding: 24 }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <h1 style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: 28,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: ".02em",
+                    color: "#e6efe8",
+                    margin: 0,
+                  }}>
+                    {client.name}
+                  </h1>
+                  <span style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    padding: "3px 8px",
+                    borderRadius: 20,
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: ".06em",
+                    textTransform: "uppercase",
+                    background: TAG_COLORS[client.tag].bg,
+                    color: TAG_COLORS[client.tag].text,
+                  }}>
                     {TAG_LABELS[client.tag]}
                   </span>
                   {client.active ? (
-                    <Badge variant="success">Ativo</Badge>
+                    <span style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      padding: "3px 8px",
+                      borderRadius: 20,
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      letterSpacing: ".06em",
+                      textTransform: "uppercase",
+                      background: "rgba(125,193,40,0.1)",
+                      color: "#7DC128",
+                    }}>Ativo</span>
                   ) : (
-                    <Badge variant="outline">Arquivado</Badge>
+                    <span style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      padding: "3px 8px",
+                      borderRadius: 20,
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      letterSpacing: ".06em",
+                      textTransform: "uppercase",
+                      background: "#182219",
+                      color: "#6e7a70",
+                    }}>Arquivado</span>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-4 text-sm text-neutral-400">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 13, color: "#a8b3aa" }}>
                   {client.contactName && (
-                    <span className="flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5" />
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <User style={{ width: 14, height: 14 }} />
                       {client.contactName}
                     </span>
                   )}
                   {client.contactPhone && (
-                    <a
-                      href={`tel:${client.contactPhone}`}
-                      className="flex items-center gap-1.5 hover:text-white transition-colors"
-                    >
-                      <Phone className="w-3.5 h-3.5" />
+                    <a href={`tel:${client.contactPhone}`} style={{ display: "flex", alignItems: "center", gap: 6, color: "#a8b3aa", textDecoration: "none" }}>
+                      <Phone style={{ width: 14, height: 14 }} />
                       {client.contactPhone}
                     </a>
                   )}
                   {client.contactEmail && (
-                    <a
-                      href={`mailto:${client.contactEmail}`}
-                      className="flex items-center gap-1.5 hover:text-white transition-colors"
-                    >
-                      <Mail className="w-3.5 h-3.5" />
+                    <a href={`mailto:${client.contactEmail}`} style={{ display: "flex", alignItems: "center", gap: 6, color: "#a8b3aa", textDecoration: "none" }}>
+                      <Mail style={{ width: 14, height: 14 }} />
                       {client.contactEmail}
                     </a>
                   )}
@@ -215,29 +266,48 @@ export function ClientPage({ client, userRole, userId, users = [] }: ClientPageP
               </div>
 
               {canEdit && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <button
                     onClick={() => setEditOpen(true)}
-                    className="text-neutral-400 hover:text-white border border-neutral-700"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      border: "1px solid #1f2a23",
+                      color: "#a8b3aa",
+                      background: "#0f1813",
+                      fontSize: 13,
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                    }}
                   >
-                    <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                    <Pencil style={{ width: 13, height: 13 }} />
                     Editar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
+                  </button>
+                  <button
                     onClick={handleArchive}
                     disabled={archiving}
-                    className="text-neutral-400 hover:text-yellow-400 border border-neutral-700"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      border: "1px solid #1f2a23",
+                      color: "#a8b3aa",
+                      background: "#0f1813",
+                      fontSize: 13,
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      cursor: archiving ? "not-allowed" : "pointer",
+                      opacity: archiving ? 0.5 : 1,
+                    }}
                   >
                     {client.active ? (
-                      <><Archive className="w-3.5 h-3.5 mr-1.5" />Arquivar</>
+                      <><Archive style={{ width: 13, height: 13 }} />Arquivar</>
                     ) : (
-                      <><ArchiveRestore className="w-3.5 h-3.5 mr-1.5" />Desarquivar</>
+                      <><ArchiveRestore style={{ width: 13, height: 13 }} />Desarquivar</>
                     )}
-                  </Button>
+                  </button>
                 </div>
               )}
             </div>
@@ -245,98 +315,61 @@ export function ClientPage({ client, userRole, userId, users = [] }: ClientPageP
         </section>
 
         {/* Quick View */}
-        <section id="quick-view" className="scroll-mt-4">
+        <section id="quick-view" style={{ scrollMarginTop: 16 }}>
           <SectionHeader title="Estatísticas" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard
-              icon={<BarChart2 className="w-4 h-4" />}
-              label="Relatórios"
-              value={String(client._count.reports)}
-            />
-            <StatCard
-              icon={<Users className="w-4 h-4" />}
-              label="Gestores"
-              value={String(client.managers.length)}
-            />
-            <StatCard
-              icon={<CalendarDays className="w-4 h-4" />}
-              label="Cliente desde"
-              value={formatBRTDate(client.createdAt)}
-            />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
+            <StatCard icon={<BarChart2 style={{ width: 16, height: 16 }} />} label="Relatórios" value={String(client._count.reports)} />
+            <StatCard icon={<Users style={{ width: 16, height: 16 }} />} label="Gestores" value={String(client.managers.length)} />
+            <StatCard icon={<CalendarDays style={{ width: 16, height: 16 }} />} label="Cliente desde" value={formatBRTDate(client.createdAt)} />
             {client.usesPix && (
-              <StatCard
-                icon={<Wallet className="w-4 h-4" />}
-                label="PIX semanal"
-                value={client.pixValue ? formatBRL(client.pixValue) : "Sim"}
-              />
+              <StatCard icon={<Wallet style={{ width: 16, height: 16 }} />} label="PIX semanal" value={client.pixValue ? formatBRL(client.pixValue) : "Sim"} />
             )}
           </div>
         </section>
 
         {/* Business Info */}
-        <section id="business-info" className="scroll-mt-4">
+        <section id="business-info" style={{ scrollMarginTop: 16 }}>
           <SectionHeader title="Informações do Negócio" />
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-            <BusinessInfoSection
-              clientId={client.id}
-              businessInfo={businessInfo}
-              userRole={userRole}
-            />
+          <div style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, padding: 20 }}>
+            <BusinessInfoSection clientId={client.id} businessInfo={businessInfo} userRole={userRole} />
           </div>
         </section>
 
         {/* Custom Sections */}
-        <section id="sections" className="scroll-mt-4">
+        <section id="sections" style={{ scrollMarginTop: 16 }}>
           <SectionHeader title="Seções Personalizadas" />
-          <CustomSections
-            clientId={client.id}
-            sections={client.customSections}
-            userRole={userRole}
-          />
+          <CustomSections clientId={client.id} sections={client.customSections} userRole={userRole} />
         </section>
 
         {/* Meta Accounts */}
-        <section id="meta-accounts" className="scroll-mt-4">
+        <section id="meta-accounts" style={{ scrollMarginTop: 16 }}>
           <SectionHeader title="Contas Meta Ads" />
-          <MetaAccountsSection
-            clientId={client.id}
-            accounts={safeMetaAccounts}
-            userRole={userRole}
-          />
+          <MetaAccountsSection clientId={client.id} accounts={safeMetaAccounts} userRole={userRole} />
         </section>
 
         {/* Managers */}
-        <section id="managers" className="scroll-mt-4">
+        <section id="managers" style={{ scrollMarginTop: 16 }}>
           <SectionHeader title="Gestores" />
           <ManagersSection
             clientId={client.id}
             managers={client.managers.map((m) => ({
               userId: m.userId,
-              user: {
-                id: m.user.id,
-                name: m.user.name,
-                email: m.user.email,
-                role: m.user.role,
-              },
+              user: { id: m.user.id, name: m.user.name, email: m.user.email, role: m.user.role },
             }))}
             userRole={userRole}
           />
         </section>
 
         {/* Attachments */}
-        <section id="attachments" className="scroll-mt-4">
+        <section id="attachments" style={{ scrollMarginTop: 16 }}>
           <SectionHeader title="Anexos e Links" />
-          <AttachmentsSection
-            clientId={client.id}
-            attachments={client.attachments}
-            userRole={userRole}
-          />
+          <AttachmentsSection clientId={client.id} attachments={client.attachments} userRole={userRole} />
         </section>
 
         {/* Tasks */}
-        <section id="tasks" className="scroll-mt-4">
+        <section id="tasks" style={{ scrollMarginTop: 16 }}>
           <SectionHeader title="Tarefas" />
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+          <div style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, padding: 20 }}>
             <ClientTasksSection
               clientId={client.id}
               clientName={client.name}
@@ -354,15 +387,10 @@ export function ClientPage({ client, userRole, userId, users = [] }: ClientPageP
         </section>
 
         {/* Reports */}
-        <section id="reports" className="scroll-mt-4 pb-16">
+        <section id="reports" style={{ scrollMarginTop: 16, paddingBottom: 64 }}>
           <SectionHeader title="Relatórios Recentes" />
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-            <ReportsSection
-              clientId={client.id}
-              reports={client.reports}
-              userRole={userRole}
-              metaAccounts={safeMetaAccounts}
-            />
+          <div style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, padding: 20 }}>
+            <ReportsSection clientId={client.id} reports={client.reports} userRole={userRole} metaAccounts={safeMetaAccounts} />
           </div>
         </section>
       </div>
@@ -395,21 +423,42 @@ export function ClientPage({ client, userRole, userId, users = [] }: ClientPageP
 
 function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="mb-3">
-      <h2 className="text-base font-semibold text-white">{title}</h2>
-      <div className="mt-1 h-px bg-neutral-800" />
+    <div style={{ marginBottom: 12 }}>
+      <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em", color: "#6e7a70", marginBottom: 6 }}>
+        Seção
+      </p>
+      <h2 style={{
+        fontFamily: "var(--font-display)",
+        fontSize: 18,
+        fontWeight: 700,
+        textTransform: "uppercase",
+        letterSpacing: ".02em",
+        color: "#e6efe8",
+        margin: 0,
+      }}>
+        {title}
+      </h2>
+      <div style={{ marginTop: 8, height: 1, background: "#1f2a23" }} />
     </div>
   );
 }
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
-      <div className="flex items-center gap-2 text-neutral-500 mb-2">
+    <div style={{ background: "#141f18", border: "1px solid #1f2a23", borderRadius: 10, padding: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#6e7a70", marginBottom: 8 }}>
         {icon}
-        <span className="text-xs">{label}</span>
+        <span style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em", fontWeight: 700 }}>{label}</span>
       </div>
-      <p className="text-lg font-semibold text-white">{value}</p>
+      <p style={{
+        fontSize: 18,
+        fontWeight: 700,
+        color: "#e6efe8",
+        fontFamily: "var(--font-mono)",
+        fontVariantNumeric: "tabular-nums",
+      }}>
+        {value}
+      </p>
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { MetaClientCard } from "@/components/metas/meta-client-card";
 import type { MonthlyGoalApiResponse } from "@/components/metas/meta-client-card";
 import type { ClientTag, Role } from "@prisma/client";
@@ -104,66 +103,115 @@ export function MetasBoard({
   const goalMap = new Map(goals.filter(g => g.year === year && g.month === month).map((g) => [g.clientId, g]));
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Metas Mensais</h1>
-          <p className="text-neutral-400 text-sm mt-1">
-            Gerencie as metas semanais por cliente
-          </p>
+    <div className="flex flex-col" style={{ minHeight: "100vh", background: "#0d1410" }}>
+      {/* Topbar */}
+      <div
+        className="flex-shrink-0 flex items-center gap-5 px-7 sticky top-0 z-10"
+        style={{
+          height: 64,
+          borderBottom: "1px solid #1f2a23",
+          background: "rgba(13,20,16,0.85)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <div className="flex items-center gap-2 text-sm">
+          <span style={{ color: "#6e7a70" }}>Operação</span>
+          <span style={{ color: "#4a5450" }}>/</span>
+          <span style={{ color: "#e6efe8", fontWeight: 600 }}>Metas Mensais</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
+
+        {/* Month navigator */}
+        <div className="ml-auto flex items-center gap-2">
+          <button
             onClick={() => navigate(-1)}
-            className="border-neutral-700 text-neutral-400 hover:text-white"
+            style={{
+              background: "#0f1813",
+              border: "1px solid #1f2a23",
+              borderRadius: 8,
+              color: "#a8b3aa",
+              padding: "6px 10px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+            }}
           >
             <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <span className="text-sm font-medium text-white min-w-[140px] text-center">
+          </button>
+          <span
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 15,
+              fontWeight: 700,
+              color: "#e6efe8",
+              minWidth: 150,
+              textAlign: "center",
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
+            }}
+          >
             {MONTH_NAMES[month - 1]} {year}
           </span>
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={() => navigate(1)}
-            className="border-neutral-700 text-neutral-400 hover:text-white"
+            style={{
+              background: "#0f1813",
+              border: "1px solid #1f2a23",
+              borderRadius: 8,
+              color: "#a8b3aa",
+              padding: "6px 10px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+            }}
           >
             <ChevronRight className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 h-48 animate-pulse" />
-          ))}
-        </div>
-      ) : clients.length === 0 ? (
-        <div className="text-center py-12 text-neutral-500">
-          Nenhum cliente encontrado
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {clients.map((client) => {
-            const goal = goalMap.get(client.id) ?? null;
-            return (
-              <MetaClientCard
-                key={client.id}
-                client={client}
-                goal={goal}
-                year={year}
-                month={month}
-                canEdit={canEdit}
-                onGoalSaved={handleGoalSaved}
+      {/* Content */}
+      <div style={{ padding: "28px 28px", flex: 1 }}>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  background: "#141f18",
+                  border: "1px solid #1f2a23",
+                  borderRadius: 10,
+                  height: 192,
+                  animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
+                }}
               />
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        ) : clients.length === 0 ? (
+          <div
+            className="flex items-center justify-center"
+            style={{ height: 200, color: "#4a5450", fontSize: 14 }}
+          >
+            Nenhum cliente encontrado
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {clients.map((client) => {
+              const goal = goalMap.get(client.id) ?? null;
+              return (
+                <MetaClientCard
+                  key={client.id}
+                  client={client}
+                  goal={goal}
+                  year={year}
+                  month={month}
+                  canEdit={canEdit}
+                  onGoalSaved={handleGoalSaved}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

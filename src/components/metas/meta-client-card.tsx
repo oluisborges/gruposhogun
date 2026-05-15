@@ -1,16 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/lib/formatting";
 import type { ClientTag } from "@prisma/client";
 
-const TAG_COLORS: Record<ClientTag, string> = {
-  MARMITARIA: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  DELIVERY: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  GENERICA: "bg-neutral-500/10 text-neutral-400 border-neutral-500/30",
+const TAG_STYLES: Record<ClientTag, { background: string; color: string; border: string }> = {
+  MARMITARIA: { background: "rgba(232,167,58,0.12)", color: "#e8a73a", border: "rgba(232,167,58,0.25)" },
+  DELIVERY: { background: "rgba(91,138,212,0.12)", color: "#5b8ad4", border: "rgba(91,138,212,0.25)" },
+  GENERICA: { background: "rgba(110,122,112,0.12)", color: "#a8b3aa", border: "rgba(110,122,112,0.25)" },
 };
 
 interface WeekGoal {
@@ -54,11 +51,11 @@ interface MetaClientCardProps {
 
 const WEEKS = [1, 2, 3, 4, 5] as const;
 
-function getMotivational(percent: number): string {
-  if (percent >= 100) return "Meta atingida! 🎯";
-  if (percent >= 75) return "Quase lá, continue!";
-  if (percent >= 50) return "Na metade do caminho";
-  return "Vamos acelerar!";
+function getMotivational(percent: number): { text: string; color: string } {
+  if (percent >= 100) return { text: "Meta atingida! 🎯", color: "#7DC128" };
+  if (percent >= 75) return { text: "Quase lá, continue!", color: "#9be03a" };
+  if (percent >= 50) return { text: "Na metade do caminho", color: "#e8a73a" };
+  return { text: "Vamos acelerar!", color: "#d85a4a" };
 }
 
 function WeeklyChart({ weeks }: { weeks: WeekGoal[] }) {
@@ -95,7 +92,7 @@ function WeeklyChart({ weeks }: { weeks: WeekGoal[] }) {
               width={barWidth / 2 - 1}
               height={goalH}
               rx={2}
-              className="fill-green-500/40"
+              fill="rgba(125,193,40,0.35)"
             />
             {/* Traffic bar */}
             {(w.traffic ?? 0) > 0 && (
@@ -105,7 +102,7 @@ function WeeklyChart({ weeks }: { weeks: WeekGoal[] }) {
                 width={barWidth / 2 - 1}
                 height={trafficH}
                 rx={2}
-                className="fill-orange-500/70"
+                fill="rgba(232,167,58,0.7)"
               />
             )}
           </g>
@@ -176,23 +173,72 @@ export function MetaClientCard({
   }
 
   const motivational = getMotivational(pct);
+  const tagStyle = TAG_STYLES[client.tag];
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 space-y-4">
+    <div
+      style={{
+        background: "#141f18",
+        border: "1px solid #1f2a23",
+        borderRadius: 10,
+        padding: 20,
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}
+    >
       {/* Header */}
       <div className="flex items-center gap-2">
-        <span className="font-semibold text-white text-sm truncate flex-1">
+        {/* Initials avatar */}
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 8,
+            background: "linear-gradient(135deg, #244a32, #15301f)",
+            border: "1px solid #284d36",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <span style={{ color: "#9be03a", fontWeight: 700, fontSize: 13 }}>
+            {client.name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <span
+          style={{
+            fontWeight: 700,
+            color: "#e6efe8",
+            fontSize: 14,
+            flex: 1,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
           {client.name}
         </span>
         <span
-          className={`inline-flex items-center rounded border px-1.5 py-0.5 text-xs font-semibold ${TAG_COLORS[client.tag]}`}
+          style={{
+            background: tagStyle.background,
+            color: tagStyle.color,
+            border: `1px solid ${tagStyle.border}`,
+            borderRadius: 5,
+            padding: "2px 7px",
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
         >
           {client.tag}
         </span>
       </div>
 
       {/* Week grid */}
-      <div className="grid grid-cols-5 gap-2">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
         {WEEKS.map((w) => {
           const weekData = weeks.find((wk) => wk.week === w) ?? {
             week: w,
@@ -200,26 +246,70 @@ export function MetaClientCard({
             traffic: 0,
           };
           return (
-            <div key={w} className="space-y-1">
-              <p className="text-xs text-neutral-500 text-center">Sem {w}</p>
+            <div key={w} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <p
+                style={{
+                  fontSize: 10,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "#6e7a70",
+                  fontWeight: 700,
+                  textAlign: "center",
+                }}
+              >
+                Sem {w}
+              </p>
               {canEdit ? (
-                <Input
+                <input
                   type="number"
                   min={0}
                   value={weekData.goal || ""}
                   onChange={(e) => updateGoal(w, parseFloat(e.target.value) || 0)}
-                  className="h-7 text-xs text-center px-1 bg-neutral-800 border-neutral-700 text-white"
                   placeholder="0"
+                  style={{
+                    height: 28,
+                    fontSize: 11,
+                    textAlign: "center",
+                    padding: "0 4px",
+                    background: "#182219",
+                    border: "1px solid #1f2a23",
+                    borderRadius: 6,
+                    color: "#e6efe8",
+                    outline: "none",
+                    width: "100%",
+                    boxSizing: "border-box",
+                  }}
                 />
               ) : (
-                <div className="h-7 flex items-center justify-center text-xs text-white bg-neutral-800 rounded border border-neutral-700">
+                <div
+                  style={{
+                    height: 28,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 11,
+                    color: "#e6efe8",
+                    background: "#182219",
+                    borderRadius: 6,
+                    border: "1px solid #1f2a23",
+                  }}
+                >
                   {weekData.goal > 0 ? formatBRL(weekData.goal) : "—"}
                 </div>
               )}
-              <div className="h-5 flex items-center justify-center text-xs text-orange-400">
+              <div
+                style={{
+                  height: 20,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  color: (weekData.traffic ?? 0) > 0 ? "#e8a73a" : "#4a5450",
+                }}
+              >
                 {(weekData.traffic ?? 0) > 0
                   ? formatBRL(weekData.traffic!)
-                  : <span className="text-neutral-700">—</span>}
+                  : "—"}
               </div>
             </div>
           );
@@ -227,53 +317,104 @@ export function MetaClientCard({
       </div>
 
       {/* Chart */}
-      <div className="flex justify-center pt-1">
+      <div style={{ display: "flex", justifyContent: "center", paddingTop: 4 }}>
         <WeeklyChart weeks={weeks} />
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-neutral-500">
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-sm bg-green-500/40 inline-block" />
+      <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 11, color: "#6e7a70" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 2,
+              background: "rgba(125,193,40,0.5)",
+              display: "inline-block",
+            }}
+          />
           Meta
         </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-sm bg-orange-500/70 inline-block" />
+        <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 2,
+              background: "rgba(232,167,58,0.7)",
+              display: "inline-block",
+            }}
+          />
           Tráfego
         </span>
       </div>
 
       {/* Progress + motivational */}
-      <div className="space-y-1">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-neutral-400">{motivational}</span>
-          <span className="text-neutral-400">{pct}%</span>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12 }}>
+          <span style={{ color: motivational.color, fontWeight: 600 }}>{motivational.text}</span>
+          <span style={{ color: "#a8b3aa", fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
+            {pct}%
+          </span>
         </div>
-        <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+        <div
+          style={{
+            width: "100%",
+            height: 4,
+            background: "#182219",
+            borderRadius: 9999,
+            overflow: "hidden",
+          }}
+        >
           <div
-            className="h-full bg-indigo-500 rounded-full transition-all"
-            style={{ width: `${Math.min(pct, 100)}%` }}
+            style={{
+              height: "100%",
+              background: pct >= 100 ? "#7DC128" : pct >= 50 ? "#e8a73a" : "#d85a4a",
+              borderRadius: 9999,
+              width: `${Math.min(pct, 100)}%`,
+              transition: "width 0.3s ease",
+            }}
           />
         </div>
-        <div className="flex items-center justify-between text-xs text-neutral-600">
-          <span>Total meta: {totalGoal > 0 ? formatBRL(totalGoal) : "—"}</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontSize: 11,
+            color: "#4a5450",
+            fontFamily: "var(--font-mono)",
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          <span>Meta: {totalGoal > 0 ? formatBRL(totalGoal) : "—"}</span>
           <span>Realizado: {totalTraffic > 0 ? formatBRL(totalTraffic) : "—"}</span>
         </div>
       </div>
 
       {/* Actions */}
       {canEdit && (
-        <div className="flex items-center gap-2 pt-1">
-          <Button
-            size="sm"
+        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: 4 }}>
+          <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 text-xs h-7"
+            style={{
+              flex: 1,
+              background: saving ? "#4a5a30" : "#7DC128",
+              color: "#0a1408",
+              fontSize: 12,
+              fontWeight: 700,
+              padding: "7px 12px",
+              borderRadius: 8,
+              border: "none",
+              cursor: saving ? "not-allowed" : "pointer",
+              transition: "background 0.15s",
+            }}
           >
             {saving ? "Salvando..." : goal ? "Salvar" : "+ Criar Meta"}
-          </Button>
+          </button>
           {error && (
-            <span className="text-xs text-red-400">{error}</span>
+            <span style={{ fontSize: 11, color: "#d85a4a" }}>{error}</span>
           )}
         </div>
       )}

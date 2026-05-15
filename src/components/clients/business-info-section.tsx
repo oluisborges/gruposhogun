@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Pencil } from "lucide-react";
 import type { Role } from "@prisma/client";
 
 interface BusinessInfo {
@@ -27,10 +28,24 @@ interface EditableFieldProps {
   onSave: (key: keyof BusinessInfo, value: string) => Promise<void>;
 }
 
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "#0f1813",
+  border: "1px solid #1f2a23",
+  borderRadius: 8,
+  color: "#e6efe8",
+  fontSize: 13,
+  padding: "9px 14px",
+  outline: "none",
+  boxSizing: "border-box",
+  resize: "none",
+};
+
 function EditableField({ label, value, fieldKey, multiline, canEdit, onSave }: EditableFieldProps) {
   const [editing, setEditing] = useState(false);
   const [current, setCurrent] = useState(value);
   const [saving, setSaving] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   async function handleSave() {
     if (current === value) {
@@ -55,8 +70,10 @@ function EditableField({ label, value, fieldKey, multiline, canEdit, onSave }: E
   }
 
   return (
-    <div className="space-y-1">
-      <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">{label}</p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em", color: "#6e7a70" }}>
+        {label}
+      </p>
       {editing && canEdit ? (
         multiline ? (
           <textarea
@@ -67,7 +84,7 @@ function EditableField({ label, value, fieldKey, multiline, canEdit, onSave }: E
             onKeyDown={handleKeyDown}
             rows={3}
             disabled={saving}
-            className="w-full bg-neutral-800 border border-neutral-700 rounded-md px-3 py-2 text-sm text-white resize-none focus:outline-none focus:border-red-500/50 disabled:opacity-50"
+            style={{ ...inputStyle, opacity: saving ? 0.5 : 1 }}
           />
         ) : (
           <input
@@ -77,24 +94,33 @@ function EditableField({ label, value, fieldKey, multiline, canEdit, onSave }: E
             onBlur={handleSave}
             onKeyDown={handleKeyDown}
             disabled={saving}
-            className="w-full bg-neutral-800 border border-neutral-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500/50 disabled:opacity-50"
+            style={{ ...inputStyle, opacity: saving ? 0.5 : 1 }}
           />
         )
       ) : (
-        <p
+        <div
           onClick={() => canEdit && setEditing(true)}
-          className={
-            canEdit
-              ? "text-sm text-neutral-300 cursor-pointer hover:text-white transition-colors min-h-[1.5rem] px-0.5 py-0.5 rounded hover:bg-neutral-800/50"
-              : "text-sm text-neutral-300 min-h-[1.5rem]"
-          }
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            cursor: canEdit ? "pointer" : "default",
+            padding: "4px 2px",
+            borderRadius: 4,
+            background: hovered && canEdit ? "rgba(125,193,40,0.05)" : "transparent",
+            transition: "background .15s",
+            minHeight: "1.75rem",
+          }}
         >
-          {value || (
-            <span className="text-neutral-600 italic">
-              {canEdit ? "Clique para editar" : "—"}
-            </span>
+          <p style={{ fontSize: 13, color: value ? "#e6efe8" : "#4a5450", flex: 1, fontStyle: value ? "normal" : "italic" }}>
+            {value || (canEdit ? "Clique para editar" : "—")}
+          </p>
+          {canEdit && hovered && (
+            <Pencil style={{ width: 12, height: 12, color: "#7DC128", flexShrink: 0 }} />
           )}
-        </p>
+        </div>
       )}
     </div>
   );
@@ -122,47 +148,15 @@ export function BusinessInfoSection({ clientId, businessInfo, userRole }: Busine
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-      <div className="sm:col-span-2">
-        <EditableField
-          label="Descrição"
-          value={info.description ?? ""}
-          fieldKey="description"
-          multiline
-          canEdit={canEdit}
-          onSave={handleSave}
-        />
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 20 }}>
+      <div style={{ gridColumn: "1 / -1" }}>
+        <EditableField label="Descrição" value={info.description ?? ""} fieldKey="description" multiline canEdit={canEdit} onSave={handleSave} />
       </div>
-      <EditableField
-        label="Horário de Funcionamento"
-        value={info.horario ?? ""}
-        fieldKey="horario"
-        canEdit={canEdit}
-        onSave={handleSave}
-      />
-      <EditableField
-        label="Ticket Médio"
-        value={info.ticketMedio ?? ""}
-        fieldKey="ticketMedio"
-        canEdit={canEdit}
-        onSave={handleSave}
-      />
-      <EditableField
-        label="Região"
-        value={info.regiao ?? ""}
-        fieldKey="regiao"
-        canEdit={canEdit}
-        onSave={handleSave}
-      />
-      <div className="sm:col-span-2">
-        <EditableField
-          label="Observações"
-          value={info.observacoes ?? ""}
-          fieldKey="observacoes"
-          multiline
-          canEdit={canEdit}
-          onSave={handleSave}
-        />
+      <EditableField label="Horário de Funcionamento" value={info.horario ?? ""} fieldKey="horario" canEdit={canEdit} onSave={handleSave} />
+      <EditableField label="Ticket Médio" value={info.ticketMedio ?? ""} fieldKey="ticketMedio" canEdit={canEdit} onSave={handleSave} />
+      <EditableField label="Região" value={info.regiao ?? ""} fieldKey="regiao" canEdit={canEdit} onSave={handleSave} />
+      <div style={{ gridColumn: "1 / -1" }}>
+        <EditableField label="Observações" value={info.observacoes ?? ""} fieldKey="observacoes" multiline canEdit={canEdit} onSave={handleSave} />
       </div>
     </div>
   );

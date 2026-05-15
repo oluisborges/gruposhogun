@@ -34,78 +34,188 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0d1410]">
-      <div className="w-full max-w-md p-8 space-y-8">
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div
-              className="w-8 h-8 rounded-[8px] flex items-center justify-center"
-              style={{
-                background: "linear-gradient(135deg, #244a32, #15301f)",
-                border: "1px solid #284d36",
-              }}
-            >
-              <span className="text-sm font-bold text-[#9be03a]" style={{ fontFamily: "var(--font-mono)" }}>S</span>
-            </div>
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ background: "#0d1410" }}
+    >
+      <div className="w-full flex flex-col items-center gap-8" style={{ maxWidth: 400, padding: "0 16px" }}>
+        {/* Brand mark */}
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="w-12 h-12 rounded-[10px] flex items-center justify-center"
+            style={{
+              background: "linear-gradient(135deg, #244a32, #15301f)",
+              border: "1px solid #284d36",
+            }}
+          >
             <span
-              className="text-xl font-bold uppercase tracking-wide text-[#e6efe8]"
-              style={{ fontFamily: "var(--font-display)" }}
+              className="text-lg font-bold"
+              style={{ color: "#9be03a", fontFamily: "var(--font-mono)" }}
             >
-              Grupo Shogun
+              S
             </span>
           </div>
-          <h1 className="text-2xl font-semibold text-[#e6efe8]">Acessar plataforma</h1>
-          <p className="text-[#6e7a70] text-sm">
-            Entre com suas credenciais para continuar
-          </p>
+          <div className="text-center">
+            <div
+              className="uppercase font-bold tracking-widest"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 22,
+                letterSpacing: "0.12em",
+                color: "#e6efe8",
+              }}
+            >
+              SHOGUN
+            </div>
+            <div style={{ fontSize: 12, color: "#6e7a70", marginTop: 2 }}>
+              Central · v2
+            </div>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-[#a8b3aa]" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="seu@email.com"
-              className="w-full px-3 py-2 bg-[#0f1813] border border-[#1f2a23] rounded-md text-[#e6efe8] placeholder:text-[#6e7a70] focus:outline-none focus:ring-2 focus:ring-[#7DC128] focus:border-transparent transition-all"
-            />
+        {/* Card */}
+        <div
+          className="w-full"
+          style={{
+            background: "#141f18",
+            border: "1px solid #1f2a23",
+            borderRadius: 10,
+            padding: 32,
+          }}
+        >
+          <div className="mb-6">
+            <h1
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: "#e6efe8",
+                marginBottom: 4,
+              }}
+            >
+              Acessar plataforma
+            </h1>
+            <p style={{ fontSize: 13, color: "#6e7a70" }}>
+              Entre com suas credenciais para continuar
+            </p>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-[#a8b3aa]" htmlFor="password">
-              Senha
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="••••••••"
-              className="w-full px-3 py-2 bg-[#0f1813] border border-[#1f2a23] rounded-md text-[#e6efe8] placeholder:text-[#6e7a70] focus:outline-none focus:ring-2 focus:ring-[#7DC128] focus:border-transparent transition-all"
-            />
-          </div>
-
-          {error && (
-            <div className="text-[#d85a4a] text-sm bg-[rgba(216,90,74,0.12)] border border-[rgba(216,90,74,0.2)] rounded-md px-3 py-2">
-              {error}
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <label
+                htmlFor="email"
+                style={{
+                  display: "block",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "#6e7a70",
+                  marginBottom: 6,
+                }}
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="seu@email.com"
+                style={{
+                  width: "100%",
+                  background: "#0f1813",
+                  border: "1px solid #1f2a23",
+                  borderRadius: 8,
+                  color: "#e6efe8",
+                  fontSize: 13,
+                  padding: "9px 14px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#7DC128")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#1f2a23")}
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-[#7DC128] hover:bg-[#9be03a] disabled:opacity-50 disabled:cursor-not-allowed text-[#0a1408] font-bold rounded-md transition-colors flex items-center justify-center gap-2"
-          >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {loading ? "Entrando..." : "Entrar"}
-          </button>
-        </form>
+            <div>
+              <label
+                htmlFor="password"
+                style={{
+                  display: "block",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "#6e7a70",
+                  marginBottom: 6,
+                }}
+              >
+                Senha
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                style={{
+                  width: "100%",
+                  background: "#0f1813",
+                  border: "1px solid #1f2a23",
+                  borderRadius: 8,
+                  color: "#e6efe8",
+                  fontSize: 13,
+                  padding: "9px 14px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#7DC128")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#1f2a23")}
+              />
+            </div>
+
+            {error && (
+              <div
+                style={{
+                  background: "rgba(216,90,74,0.12)",
+                  border: "1px solid rgba(216,90,74,0.25)",
+                  borderRadius: 8,
+                  padding: "9px 14px",
+                  fontSize: 13,
+                  color: "#d85a4a",
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: "100%",
+                background: loading ? "#4a5a30" : "#7DC128",
+                color: "#0a1408",
+                fontSize: 13,
+                fontWeight: 700,
+                padding: "10px 14px",
+                borderRadius: 8,
+                border: "none",
+                cursor: loading ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                transition: "background 0.15s",
+              }}
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading ? "Entrando..." : "Entrar"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
